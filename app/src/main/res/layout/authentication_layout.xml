@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".InputCollector">
+
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        app:theme="@style/ToolbarStyle"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        app:title="Access Control"
+        app:titleTextColor="#FFFFFF"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="20dp"
+        android:layout_below="@id/my_toolbar"
+        android:layout_above="@id/tmp_rel">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Username:"
+            android:textStyle="bold"
+            android:textSize="18sp"/>
+
+        <EditText
+            android:id="@+id/edt_username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Username"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Password:"
+            android:layout_marginTop="10dp"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:id="@+id/edt_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Password"
+            android:layout_marginLeft="10dp"
+            android:inputType="textPassword"
+            android:layout_marginRight="10dp"
+
+            />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+
+            <LinearLayout
+                android:id="@+id/lin_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:layout_toLeftOf="@id/btn_done"
+                android:orientation="horizontal">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:padding="10dp"
+                    android:text="Login in progress..."
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+
+
+            <Button
+                android:id="@+id/btn_done"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Submit"
+                android:layout_alignParentRight="true"
+                />
+        </RelativeLayout>
+
+
+
+    </LinearLayout>
+    <RelativeLayout
+        android:id="@+id/tmp_rel"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_alignParentBottom="true"
+        android:background="#f2f2f2"
+        android:visibility="gone"
+        >
+        <android.inputmethodservice.KeyboardView
+            android:id="@+id/kbv_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/keyboardBackground"
+            android:keyBackground="@color/keyboardKeyBackground"
+            android:keyTextColor="@color/keyboardKeyTextColor"
+            android:shadowColor="@android:color/transparent"
+            android:shadowRadius="0.0"
+            />
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">FullPatrol</string>
+    <string name="positive_popup_text_default">You have successfully completed the patrol. Keep it up to earn more good patrols.</string>
+    <string name="positive_popup_title_default">Point Scanned!</string>
+    <string name="negative_popup_text_default">You have failed to complete the scan. So close! And give it another go.</string>
+    <string name="negative_popup_title_default">Awww. . .Snap!</string>
+    <string name="positive_popup_button_default">OK</string>
+    <string name="negative_popup_button_default">TRY AGAIN</string>
+
+</resources>

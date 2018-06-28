@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+
+
+    <item
+        android:id="@+id/action_control_panel"
+        android:title="Control Panel"
+        app:showAsAction="never"></item>
+
+    <item
+        android:id="@+id/action_send_Report"
+        android:title="Send Report"
+        app:showAsAction="never">
+        <menu >
+        <item
+            android:id="@+id/action_report_voice"
+            android:title="Voice Note"
+            app:showAsAction="never"/>
+
+        <item
+            android:id="@+id/action_report_text"
+            android:title="Text Note"
+            app:showAsAction="never"/>
+        <item
+            android:id="@+id/action_report_image"
+            android:title="Image"
+            app:showAsAction="never"/>
+
+        <item
+            android:id="@+id/action_report_video"
+            android:title="Video"
+            app:showAsAction="never"/>
+
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/action_exit_kiosk"
+        android:title="Exit"
+        app:showAsAction="never"></item>
+
+
+</menu>

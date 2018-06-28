@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LinkDeviceActivity">
+
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        app:theme="@style/ToolbarStyle"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        app:title="Link Device To Site"
+        app:titleTextColor="#FFFFFF"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/my_toolbar"
+        android:orientation="vertical"
+        android:layout_above="@id/btn_done">
+        <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Device Unique Id (UID):"
+        android:textStyle="bold"
+        android:padding="10dp"
+        android:textSize="15sp"/>
+
+        <TextView
+            android:id="@+id/ttv_device_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0000"
+            android:layout_marginLeft="20dp"
+            android:textSize="15sp"/>
+
+        <TextView
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Site:"
+            android:textStyle="bold"
+            android:padding="10dp"
+            android:layout_marginTop="10dp"
+            android:textSize="15sp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp">
+
+            <ImageView
+                android:id="@+id/img_search"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                app:srcCompat="@drawable/ic_search"
+                android:scaleType="fitCenter"
+                android:padding="5dp"
+                android:layout_alignParentRight="true"
+                android:tint="@color/colorAccent"
+                />
+
+            <EditText
+                android:id="@+id/edt_search_input"
+                android:layout_toLeftOf="@id/img_search"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:imeOptions="actionSearch"
+                android:hint="Search Site By Name"/>
+        </RelativeLayout>
+
+
+        <ListView
+            android:id="@+id/lst_sites_display"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:choiceMode="singleChoice"
+            android:listSelector="@color/colorAccent"
+
+            ></ListView>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_done"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Link"
+        android:layout_alignParentBottom="true"
+        android:background="#989898"
+        android:textColor="#FFF"
+        android:enabled="false"
+        android:textStyle="bold"
+        android:layout_margin="10dp"/>
+</RelativeLayout>

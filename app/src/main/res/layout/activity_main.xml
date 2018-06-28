@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity"
+    android:background="#f1f1f1">
+
+
+
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="4dp"
+        app:cardPreventCornerOverlap="false"
+        app:contentPadding="0dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MainActivity">
+
+            <TextView
+                android:id="@+id/ttv_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="00:00:00"
+                android:textStyle="bold"
+                android:textSize="60sp"
+                android:padding="10dp"
+                android:gravity="center"
+                android:textColor="#212121"
+
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tmp_id"
+                android:layout_below="@id/ttv_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Until Next Patrol"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:textColor="#4b4b4b"/>
+
+            <TextView
+
+                android:id="@+id/ttv_duty_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="OFF DUTY"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="#FFF"
+                android:padding="10dp"
+                android:textSize="15sp"
+                android:layout_below="@id/tmp_id"
+                android:layout_marginTop="10dp"
+                android:background="@color/colorAccent"/>
+
+
+
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+
+        <Button
+            android:id="@+id/btn_panic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PANIC !!!"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="10dp"
+            android:textColor="#FFF"
+            android:textStyle="bold"
+            android:background="@drawable/round_corners"
+            android:backgroundTint="#d7342a"/>
+
+    </RelativeLayout>
