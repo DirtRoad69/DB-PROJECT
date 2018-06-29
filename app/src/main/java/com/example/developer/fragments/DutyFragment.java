@@ -72,6 +72,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setHasOptionsMenu(true);
+        Log.i(TAG, "onCreate: is on");
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(AlarmReceiver.ACTION_REST_ALARM);
@@ -106,6 +107,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         this.panicToast = Toast.makeText(this.getContext(), String.format("press panic %d more times", panicCount), Toast.LENGTH_SHORT);
 
     }
+
 
     @Nullable
     @Override
@@ -191,14 +193,22 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         mCountDownTimer = new CountDownTimer((long) (duration * 60 * 1000), 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
+                if(millisUntilFinished < 5000){
+
+                    ((MainActivity)getActivity()).wakeUpDevice();
+                    Log.i(TAG, "onTick: is on");
+                }
+
+                //((MainActivity)getActivity()).wakeUpDevice();
                 updateCountDownText(millisUntilFinished);
             }
 
             @Override
             public void onFinish() {
+                ((MainActivity)getActivity()).setDeviceSleep();
                 Intent intent = new Intent("com.example.intent.restart");
                 intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_TIMER);
-                
+
                 getContext().sendBroadcast(intent);
                 Toast.makeText(getActivity(), "TIMER ACTIVITY 1", Toast.LENGTH_SHORT).show();
             }

@@ -134,6 +134,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 int minutes = (int) (millisUntilFinished / 1000) / 60;
                 int seconds = (int) (millisUntilFinished / 1000) % 60;
 
+
+                ((MainActivity)getActivity()).wakeUpDevice();
                 String timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
 
                 ttvDuraton.setText(timeLeftFormatted);
@@ -141,6 +143,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
             @Override
             public void onFinish() {
+                ((MainActivity)getActivity()).setDeviceSleep();
                 verityPatrol(listItems, pointCol, true);
             }
         }.start();
@@ -161,6 +164,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
             @Override
             public void onFinish() {
+
+                ((MainActivity)getActivity()).setDeviceSleep();
                 crvTimeout.setVisibility(View.GONE);
                 firebaseManager.sendEventType(MainActivity.eventsCollection, "No Points Visited", 22, "");
                 timePatrolDuration.cancel();
@@ -174,34 +179,34 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
     @Override
     protected void onFragmentResult(int requestCode, int resultCode, Bundle extraData) {
-            if(requestCode == REQ_SCAN){
-                if(resultCode == Activity.RESULT_OK){
-                    String scanData = extraData.getString(CONTENT);
+        if(requestCode == REQ_SCAN){
+            if(resultCode == Activity.RESULT_OK){
+                String scanData = extraData.getString(CONTENT);
 
-                    if(contains(pointCol, scanData)){
-                        if( (contains(listItems, scanData) && !startingPoint.pointId.equals(scanData))){
-                            Toast.makeText(getContext(), "Point Already scanned", Toast.LENGTH_LONG).show();
-                        }else{
-                            listItems.add(get(pointCol,scanData));
-                            patrol();
-                            if(listItems.size()>1){
-                                this.firebaseManager.sendEventType(MainActivity.eventsCollection,"",scanData, 0, "");
-                                Toast.makeText(getContext(),"Point scanned", Toast.LENGTH_LONG).show();
-                            }
-                        }
-
+                if(contains(pointCol, scanData)){
+                    if( (contains(listItems, scanData) && !startingPoint.pointId.equals(scanData))){
+                        Toast.makeText(getContext(), "Point Already scanned", Toast.LENGTH_LONG).show();
                     }else{
-                        Toast.makeText(getContext(), "Point not from site", Toast.LENGTH_LONG).show();
+                        listItems.add(get(pointCol,scanData));
+                        patrol();
+                        if(listItems.size()>1){
+                            this.firebaseManager.sendEventType(MainActivity.eventsCollection,"",scanData, 0, "");
+                            Toast.makeText(getContext(),"Point scanned", Toast.LENGTH_LONG).show();
+                        }
                     }
 
-                    verifyPatrolVisually(listItems, pointCol);
-
-                    displayPoints(listItems, pointCol);
-
-                }else if(resultCode == Activity.RESULT_CANCELED){
-                    Toast.makeText(getContext(),"Scan Cancelled", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(getContext(), "Point not from site", Toast.LENGTH_LONG).show();
                 }
+
+                verifyPatrolVisually(listItems, pointCol);
+
+                displayPoints(listItems, pointCol);
+
+            }else if(resultCode == Activity.RESULT_CANCELED){
+                Toast.makeText(getContext(),"Scan Cancelled", Toast.LENGTH_LONG).show();
             }
+        }
     }
 
     public void patrol(){

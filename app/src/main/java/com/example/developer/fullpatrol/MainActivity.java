@@ -6,7 +6,9 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.CountDownTimer;
+import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -17,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.developer.fragments.AuthenticationFragment;
 import com.example.developer.fragments.ControlPanelFragment;
@@ -58,15 +61,20 @@ public class MainActivity extends LockableActivity {
     //alarm
     public static AlarmManager alarmMgr;
     public static PendingIntent alarmIntent;
+    public static boolean isKioskActive = false;
+
 
     public static String _dutyStatus = "ON DUTY";
     private FragmentManager fragmentManager;
 
+    PowerManager.WakeLock wakelock;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.Lock();
 
+
+        Toast.makeText(this, "On MainActivity Created. . .", Toast.LENGTH_SHORT).show();
 
         setContentView(R.layout.main_layout);
         fragmentManager = this.getSupportFragmentManager();
@@ -74,15 +82,26 @@ public class MainActivity extends LockableActivity {
 
 
         String siteId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
-        if(siteId != null){
+        if(siteId != null && !isKioskActive){
+            Toast.makeText(this, "On MainActivity Created. . .IsActive", Toast.LENGTH_SHORT).show();
             this.startKioskSession(SITES_COLLECTION, siteId);
         }else{
             //error
             Log.i(TAG, "onCreate: null site id");
         }
+        isKioskActive = true;
     }
 
+    public void wakeUpDevice() {
 
+        PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
+        wakelock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
+        wakelock.acquire();
+    }
+    public void setDeviceSleep() {
+        wakelock.release();
+    }
 
     private void startKioskSession(String collection, String siteId) {
         this.firebaseManager = FirebaseManager.getInstance();
@@ -118,12 +137,6 @@ public class MainActivity extends LockableActivity {
     }
 
     public void sendIntent(String accessType, int code){
-
-
-//        Intent inputIntent = new Intent(this, InputCollector.class);
-//        inputIntent.putExtra(InputCollector.ACCESS_TYPE, accessType);
-//        this.startActivityForResult(inputIntent, code);
-//
         Bundle extraData = new Bundle();
         extraData.putString(AuthenticationFragment.ACCESS_TYPE, accessType);
         AuthenticationFragment authenticationFragment = new AuthenticationFragment();
@@ -146,7 +159,7 @@ public class MainActivity extends LockableActivity {
         intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_ALARM);
         PendingIntent repeatingAlarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
         this.alarmMgr.cancel(repeatingAlarmIntent);
-
+        isKioskActive = false;
         Log.i("RFC", "Exiting Kiosk");
         this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).edit().putBoolean(HomeActivity.SHARE_KIOSK_ENABLED, false).apply();
         this.Unlock();
@@ -204,10 +217,6 @@ public class MainActivity extends LockableActivity {
             //startTimer((diff) / 60000.0);
             Log.i("RFC",  "|" + resultdate.toString());
         }
-
-//        alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
-//                1000*60*patrolTime
-//                , alarmIntent);
 
     }
 
@@ -274,6 +283,17 @@ public class MainActivity extends LockableActivity {
 
     public void removeFragment(String title) {
         fragmentManager.popBackStack(title, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.i(TAG, "onDestroy: called");
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
 
     public void removeFragment(String title, int resultCode, Bundle extraData){
