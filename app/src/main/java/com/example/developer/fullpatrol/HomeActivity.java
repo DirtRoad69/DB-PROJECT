@@ -18,6 +18,8 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import com.example.developer.fragments.AuthenticationFragment;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,8 +77,8 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
     @Override
     public void onClick(View v) {
         int requestCode = (getSITE() == null) ? REQUEST_LINK : REQUEST_UNLINK;
-        Intent accessIntent = new Intent(this, InputCollector.class);;
-        accessIntent.putExtra(InputCollector.ACCESS_TYPE,  InputCollector.ACCESS_TYPE_ADMIN);
+        Intent accessIntent = new Intent(this, AuthenticationFragment.class);;
+        accessIntent.putExtra(AuthenticationFragment.ACCESS_TYPE,  AuthenticationFragment.ACCESS_TYPE_ADMIN);
         this.startActivityForResult(accessIntent, requestCode);
     }
 

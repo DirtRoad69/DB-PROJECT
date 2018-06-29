@@ -143,7 +143,6 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
             @Override
             public void onFinish() {
-                ((MainActivity)getActivity()).setDeviceSleep();
                 verityPatrol(listItems, pointCol, true);
             }
         }.start();
@@ -237,6 +236,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     }
 
     private void close(){
+
+        ((MainActivity)getActivity()).setDeviceSleep();
         PatrolFragment.this.removeSelf();
     }
 
@@ -276,7 +277,6 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     private void verityPatrol(List<PatrolPoint> scannedPoints, List<PatrolPoint> pointCollection, boolean isFinished) {
 
 
-        ((MainActivity)getActivity()).setDeviceSleep();
 
         //array of missed points
         List<PatrolPoint> missedPoints = new ArrayList<>();

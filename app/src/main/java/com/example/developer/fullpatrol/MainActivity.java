@@ -101,7 +101,8 @@ public class MainActivity extends LockableActivity {
     }
     public void setDeviceSleep() {
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        wakelock.release();
+        if(wakelock.isHeld())
+            wakelock.release();
     }
 
     private void startKioskSession(String collection, String siteId) {
