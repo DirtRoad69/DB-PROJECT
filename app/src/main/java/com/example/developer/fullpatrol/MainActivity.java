@@ -67,12 +67,17 @@ public class MainActivity extends LockableActivity {
     public static String _dutyStatus = "ON DUTY";
     private FragmentManager fragmentManager;
 
+    public static boolean wakeActive;
+
     PowerManager.WakeLock wakelock;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.Lock();
 
+        wakeActive = false;
 
         Toast.makeText(this, "On MainActivity Created. . .", Toast.LENGTH_SHORT).show();
 
@@ -91,13 +96,14 @@ public class MainActivity extends LockableActivity {
         isKioskActive = true;
     }
 
-    public void wakeUpDevice() {
+    public void wakeUpDevice(int someFlag) {
 	
         this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
-        wakelock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK
+        wakelock = pm.newWakeLock(someFlag
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
-        wakelock.acquire();
+        if(!wakelock.isHeld())
+            wakelock.acquire();
     }
     public void setDeviceSleep() {
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

@@ -195,7 +195,12 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             public void onTick(long millisUntilFinished) {
                 if(millisUntilFinished < 5000){
 
-                    ((MainActivity)getActivity()).wakeUpDevice();
+                    if(!MainActivity.wakeActive)
+                    {
+                        ((MainActivity)getActivity()).wakeUpDevice(1);
+                        MainActivity.wakeActive = true;
+                    }
+
                     Log.i(TAG, "onTick: is on");
                 }
 

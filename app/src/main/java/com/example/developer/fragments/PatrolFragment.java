@@ -134,8 +134,9 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 int minutes = (int) (millisUntilFinished / 1000) / 60;
                 int seconds = (int) (millisUntilFinished / 1000) % 60;
 
-
-                ((MainActivity)getActivity()).wakeUpDevice();
+                if(!MainActivity.wakeActive){
+                    ((MainActivity)getActivity()).wakeUpDevice(26);
+                }
                 String timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
 
                 ttvDuraton.setText(timeLeftFormatted);
