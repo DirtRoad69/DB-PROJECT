@@ -78,7 +78,6 @@ public class MainActivity extends LockableActivity {
 
         setContentView(R.layout.main_layout);
         fragmentManager = this.getSupportFragmentManager();
-        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
         String siteId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
@@ -93,13 +92,15 @@ public class MainActivity extends LockableActivity {
     }
 
     public void wakeUpDevice() {
-
+	
+        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
         wakelock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
         wakelock.acquire();
     }
     public void setDeviceSleep() {
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         wakelock.release();
     }
 

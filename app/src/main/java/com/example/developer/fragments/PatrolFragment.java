@@ -275,6 +275,9 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
     private void verityPatrol(List<PatrolPoint> scannedPoints, List<PatrolPoint> pointCollection, boolean isFinished) {
 
+
+        ((MainActivity)getActivity()).setDeviceSleep();
+
         //array of missed points
         List<PatrolPoint> missedPoints = new ArrayList<>();
 
