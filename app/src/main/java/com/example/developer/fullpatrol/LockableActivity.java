@@ -114,7 +114,7 @@ public class LockableActivity extends AppCompatActivity {
 
             @Override
             public boolean onKeyDown(int keyCode, KeyEvent event) {
-                switch(keyCode){
+                switch(keyCode) {
                     case KeyEvent.KEYCODE_VOLUME_UP:
                     case KeyEvent.KEYCODE_VOLUME_DOWN:
                     case KeyEvent.KEYCODE_VOLUME_MUTE:
@@ -124,13 +124,9 @@ public class LockableActivity extends AppCompatActivity {
                         this.getContext().sendBroadcast(closeDialog);
                         return true;
                     case KeyEvent.KEYCODE_BACK:
-                        if(!lockBackButton){
-                            LockableActivity lockedAct = (LockableActivity)this.getOwnerActivity();
-                            lockedAct.Unlock();
-                            lockedAct.finish();
-                        }
-
-                       return false;
+                        LockableActivity lockedAct = (LockableActivity) this.getOwnerActivity();
+                        lockedAct.onInterceptBackPress();
+                        return false;
 
                 }
                 Log.i("RFC", "keyD");

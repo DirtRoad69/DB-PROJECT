@@ -6,29 +6,14 @@
     android:layout_height="match_parent">
 
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/my_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        app:theme="@style/ToolbarStyle"
-        android:background="@color/colorPrimary"
-        app:title="VanGaurd"
-        app:titleTextColor="#FFFFFF"
-        />
 
-    <View
-        android:layout_below="@id/my_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="5dp"
-        android:background="@drawable/drop_down"/>
-
-    <fragment
+    <FrameLayout
         android:name="com.example.developer.fragments.placeholder"
-        android:id="@+id/frag_main"
+        android:id="@+id/frame_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/my_toolbar">
 
-    </fragment>
+    </FrameLayout>
 
 </RelativeLayout>

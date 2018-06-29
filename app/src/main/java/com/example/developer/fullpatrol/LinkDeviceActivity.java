@@ -18,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -207,6 +208,7 @@ public class LinkDeviceActivity extends AppCompatActivity implements View.OnClic
             RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
             String url = "https://us-central1-project-apple-34c2c.cloudfunctions.net/helloWorld?site=" + query;
 
+
             // Request a string response from the provided URL.
             StringRequest stringRequest = new StringRequest( Request.Method.GET, url,
                     new Response.Listener<String>() {
@@ -240,9 +242,11 @@ public class LinkDeviceActivity extends AppCompatActivity implements View.OnClic
                 public void onErrorResponse(VolleyError error) {
                     String test = "That didn't work!";
                     Toast.makeText(getApplicationContext(), test, Toast.LENGTH_SHORT).show();
+                    Log.i("dcf", "onErrorResponse: " + error.getMessage());
                 }
             });
             // Add the request to the RequestQueue.
+            stringRequest.setRetryPolicy(new DefaultRetryPolicy(10000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
             queue.add(stringRequest);
 
 

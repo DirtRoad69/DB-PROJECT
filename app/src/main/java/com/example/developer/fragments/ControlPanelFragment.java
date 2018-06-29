@@ -12,10 +12,7 @@ import com.example.developer.fullpatrol.R;
 public class ControlPanelFragment extends KioskFragment {
     public static final String TITLE = "Control Panel Fragment";
 
-    @Override
-    protected void proccessCommand(String command) {
 
-    }
 
     @Override
     public String getTitle() {

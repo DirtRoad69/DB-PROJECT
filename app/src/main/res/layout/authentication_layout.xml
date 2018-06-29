@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".InputCollector">
+    tools:context=".InputCollector"
+    android:background="#eeeeee">
+
 
 
     <android.support.v7.widget.Toolbar
@@ -13,10 +15,15 @@
         android:layout_height="60dp"
         app:theme="@style/ToolbarStyle"
         android:background="@color/colorPrimary"
-        android:elevation="4dp"
-        app:title="Access Control"
+        app:title="Authentication"
         app:titleTextColor="#FFFFFF"
         />
+
+    <View
+        android:layout_below="@id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:background="@drawable/drop_down"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -93,6 +100,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Submit"
+                android:background="@color/colorPrimary"
+                android:textColor="#FFF"
                 android:layout_alignParentRight="true"
                 />
         </RelativeLayout>

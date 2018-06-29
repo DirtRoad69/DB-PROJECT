@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.CountDownTimer;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
@@ -33,10 +34,14 @@ import java.util.Map;
 
 public class MainActivity extends LockableActivity {
 
-    private static final String TAG = "PatrolFragment";
+    public static final String TAG = "PatrolFragment"
+            ,eventsCollection = "patrolDataDummy"
+            ,PANIC_EVENT_DESCRIPTION = "Panic";
 
     //setup data
-    private static final int REQUEST_CONTROL = 10, REQUEST_EXIT = 11;
+    public static final int REQUEST_CONTROL = 10, REQUEST_EXIT = 11, MAX_PANIC_TAPS = 5
+            , PANIC_REST_DURATION = 5000
+            , PANIC_EVENT_ID = 8;
     public static final String SITES_COLLECTION = "site";
 
     //firebase stuff
@@ -62,6 +67,7 @@ public class MainActivity extends LockableActivity {
         super.onCreate(savedInstanceState);
         this.Lock();
 
+
         setContentView(R.layout.main_layout);
         fragmentManager = this.getSupportFragmentManager();
         this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -83,15 +89,14 @@ public class MainActivity extends LockableActivity {
         this.siteDataManager = SiteDataManager.getInstance();
         this.firebaseManager.init(collection, siteId);
 
-        this.mTopToolbar =  findViewById(R.id.my_toolbar);
-        setSupportActionBar(mTopToolbar);
+
 
 
         this.firebaseManager.getPatrolData(new FirebaseManager.DataCallback() {
             @Override
             public void onDataReceived(Map<String, Object> data) {
                 MainActivity.this.siteDataManager.setData(data);
-                MainActivity.this.startFragment(DutyFragment.TITLE);
+                MainActivity.this.addFragment(new DutyFragment());
                 MainActivity.this.setFirstTimeAlarm();
             }
 
@@ -107,31 +112,9 @@ public class MainActivity extends LockableActivity {
 
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return  true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int code = -1;
-        String accessType = null;
-        switch (item.getItemId()){
-            case R.id.action_control_panel:
-                code = REQUEST_CONTROL;
-                accessType = InputCollector.ACCESS_TYPE_CONTROL;
-                sendIntent(accessType, code);
-                break;
-            case R.id.action_exit_kiosk:
-                code = REQUEST_EXIT;
-                accessType = InputCollector.ACCESS_TYPE_ADMIN;
-                sendIntent(accessType, code);
-
-                break;
-        }
-
-
-        return super.onOptionsItemSelected(item);
+    public boolean onSupportNavigateUp() {
+        this.notifyFragment();
+        return super.onSupportNavigateUp();
     }
 
     public void sendIntent(String accessType, int code){
@@ -141,9 +124,12 @@ public class MainActivity extends LockableActivity {
 //        inputIntent.putExtra(InputCollector.ACCESS_TYPE, accessType);
 //        this.startActivityForResult(inputIntent, code);
 //
+        Bundle extraData = new Bundle();
+        extraData.putString(AuthenticationFragment.ACCESS_TYPE, accessType);
+        AuthenticationFragment authenticationFragment = new AuthenticationFragment();
+        authenticationFragment.setArguments(extraData);
 
-        startFragment(AuthenticationFragment.TITLE);
-
+        this.addFragment(authenticationFragment);
     }
 
     private void offDuty(Boolean isOnDuty, Calendar c){
@@ -151,23 +137,20 @@ public class MainActivity extends LockableActivity {
             c.add(Calendar.DATE, 1);
     }
 
-    private void exitKiosk(){
-//        if(this.mCountDownTimer != null)
-//            this.mCountDownTimer.cancel();
-//
-//        if(this.alarmMgr != null && this.alarmIntent != null)
-//            alarmMgr.cancel(alarmIntent);
-//
-//        Intent intent = new Intent(context, AlarmReceiver.class);
-//        intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_ALARM);
-//        PendingIntent repeatingAlarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-//        this.alarmMgr.cancel(repeatingAlarmIntent);
-//
-//        Log.i("RFC", "Exiting Kiosk");
-//        this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).edit().putBoolean(HomeActivity.SHARE_KIOSK_ENABLED, false).apply();
-//        Interpol.getInstance().setOutOfMainActivity(false);
-//        this.Unlock();
-//        this.finish();
+    public void exitKiosk(){
+
+        if(this.alarmMgr != null && this.alarmIntent != null)
+            alarmMgr.cancel(alarmIntent);
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_ALARM);
+        PendingIntent repeatingAlarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        this.alarmMgr.cancel(repeatingAlarmIntent);
+
+        Log.i("RFC", "Exiting Kiosk");
+        this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).edit().putBoolean(HomeActivity.SHARE_KIOSK_ENABLED, false).apply();
+        this.Unlock();
+        this.finish();
     }
 
     private void setFirstTimeAlarm() {
@@ -264,63 +247,44 @@ public class MainActivity extends LockableActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    public void startFragment(String fragmentId) {
-        int fragmentIndex = this.getFragmentIndex(fragmentId);
-        if(fragmentIndex >= 0){
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.add(R.id.frag_main, kioskFragments[fragmentIndex]);
-            kioskFragments[fragmentIndex].requestCode = -1;
-            fragmentTransaction.addToBackStack(fragmentId);
-            fragmentTransaction.commit();
-        }else{
-            Log.i(TAG, "startFragment: couldn't find fragment:" + fragmentId);
-        }
+
+    @Override
+    protected void onInterceptBackPress() {
+        this.notifyFragment();
+        super.onInterceptBackPress();
     }
 
-    public void startFragment(String fragmentId, int requestCode) {
-        int fragmentIndex = this.getFragmentIndex(fragmentId);
-        if(fragmentIndex >= 0){
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.add(R.id.frag_main, kioskFragments[fragmentIndex]);
-            kioskFragments[fragmentIndex].requestCode = requestCode;
-            fragmentTransaction.addToBackStack(fragmentId);
-            fragmentTransaction.commit();
-        }else{
-            Log.i(TAG, "startFragment: couldn't find fragment:" + fragmentId);
-        }
-    }
-
-    public void returnToFragment(String fragmentId, int requestCode, int resultCode, Intent intent) {
-        int fragmentIndex = this.getFragmentIndex(fragmentId);
-        if (fragmentIndex >= 0) {
-            fragmentManager.popBackStack();
-            kioskFragments[fragmentIndex].onFragmentReturn(requestCode, resultCode, intent);
-        } else {
-            Log.i(TAG, "startFragment: couldn't find fragment:" + fragmentId);
-        }
-    }
-
-    public void returnToFragment(){
-        fragmentManager.popBackStack();
-    }
-
-    public int getFragmentIndex(String title){
-        for(int pos = 0; pos < this.kioskFragments.length; pos++){
-            Log.i(TAG, "getFragmentIndex: " + kioskFragments[pos].getTitle());
-            if(kioskFragments[pos].getTitle().equals(title)){
-                return pos;
+    private void notifyFragment() {
+        int indexTopFragment = fragmentManager.getBackStackEntryCount() - 1;
+        if(indexTopFragment >= 0){
+            String title = fragmentManager.getBackStackEntryAt(indexTopFragment).getName();
+            Fragment fragment = fragmentManager.findFragmentByTag(title);
+            if(fragment != null){
+                ((KioskFragment)fragment).onBackPressed();
             }
         }
-        return -1;
     }
 
+    public void addFragment(KioskFragment fragment){
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.add(R.id.frame_container, fragment, fragment.getTitle());
+        transaction.addToBackStack(fragment.getTitle());
+        transaction.commit();
+    }
 
-    public void closeFragment(String title) {
-        int index= getFragmentIndex(title);
-        if(index >= 0){
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.remove(kioskFragments[index]);
-            transaction.commit();
+    public void removeFragment(String title) {
+        fragmentManager.popBackStack(title, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
+    public void removeFragment(String title, int resultCode, Bundle extraData){
+        int secondLast = fragmentManager.getBackStackEntryCount() - 2;
+        if(secondLast >= 0){
+            String secondTitle = fragmentManager.getBackStackEntryAt(secondLast).getName();
+            fragmentManager.popBackStack(title, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            Fragment nextFragment = fragmentManager.findFragmentByTag(secondTitle);
+            if(nextFragment != null)
+                ((KioskFragment)nextFragment).onResult(resultCode, extraData);
         }
     }
+
 }

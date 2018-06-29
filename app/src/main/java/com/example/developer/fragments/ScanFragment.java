@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.developer.fullpatrol.Display;
 import com.example.developer.fullpatrol.R;
@@ -31,7 +32,7 @@ public class ScanFragment extends KioskFragment implements ZXingScannerView.Resu
     public static final String TITLE = "Scan Fragment";
     private FrameLayout contentFrame;
     private ZXingScannerView scannerView;
-    private Dialog epicDialog;
+
     private ImageView closePopupNegativeImg;
     private Button btnRetry;
     private TextView titleTv;
@@ -39,10 +40,7 @@ public class ScanFragment extends KioskFragment implements ZXingScannerView.Resu
     private ImageView closePopupPositiveImg;
     private Button btnAccept;
 
-    @Override
-    protected void proccessCommand(String command) {
 
-    }
 
     @Override
     public String getTitle() {
@@ -60,45 +58,43 @@ public class ScanFragment extends KioskFragment implements ZXingScannerView.Resu
         contentFrame.addView(scannerView);
         scannerView.setResultHandler(this);
 
-        //Popup vars initialization
-        epicDialog = new Dialog(getContext());
-
         return parentView;
     }
 
     public void showNegativePopup() {
-
-        epicDialog.setContentView(R.layout.epic_popup_negative);
-        closePopupNegativeImg = (ImageView)epicDialog.findViewById(R.id.closePopupNegativeImg);
-        btnRetry = (Button) epicDialog.findViewById(R.id.btnRetry);
-        closePopupNegativeImg.setImageResource(R.drawable.img_x);
-        titleTv = (TextView)epicDialog.findViewById(R.id.titleTv);
-        messageTv = (TextView)epicDialog.findViewById(R.id.messageTv);
-
-        closePopupNegativeImg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                epicDialog.dismiss();
-                close(Activity.RESULT_CANCELED, null);
-            }
-        });
-        btnRetry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                close(Activity.RESULT_CANCELED, null);
-            }
-        });
-
-        epicDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        epicDialog.show();
+        Toast.makeText(getContext(), "Error Scanning", Toast.LENGTH_SHORT).show();
+//
+//        epicDialog.setContentView(R.layout.epic_popup_negative);
+//        closePopupNegativeImg = (ImageView)epicDialog.findViewById(R.id.closePopupNegativeImg);
+//        btnRetry = (Button) epicDialog.findViewById(R.id.btnRetry);
+//        closePopupNegativeImg.setImageResource(R.drawable.img_x);
+//        titleTv = (TextView)epicDialog.findViewById(R.id.titleTv);
+//        messageTv = (TextView)epicDialog.findViewById(R.id.messageTv);
+//
+//        closePopupNegativeImg.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                epicDialog.dismiss();
+//                close(Activity.RESULT_CANCELED, null);
+//            }
+//        });
+//        btnRetry.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                close(Activity.RESULT_CANCELED, null);
+//            }
+//        });
+//
+//        epicDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+//        epicDialog.show();
 
     }
 
-    private void close(int resultCode, Intent intent){
-        this.returnToFragment(PatrolFragment.TITLE, resultCode, intent);
+    private void close(int resultCode, Bundle extraData){
+        this.removeSelf(resultCode, extraData);
     }
 
-    public void showPositivePopup(final Intent intent) {
+    public void showPositivePopup(final Bundle extraData) {
         //epicDialog.setContentView(R.layout.epic_popup_positive);
         //epicDialog.setCancelable(false);
         View parentView = LayoutInflater.from(getContext()).inflate(R.layout.epic_popup_positive, null, false);
@@ -112,7 +108,7 @@ public class ScanFragment extends KioskFragment implements ZXingScannerView.Resu
             @Override
             public void onClick(View v) {
                 //epicDialog.dismiss();
-                close(Activity.RESULT_OK, intent);
+                close(Activity.RESULT_OK, extraData);
             }
         });
 
@@ -120,7 +116,7 @@ public class ScanFragment extends KioskFragment implements ZXingScannerView.Resu
             @Override
             public void onClick(View v) {
                 // epicDialog.dismiss();
-                close(Activity.RESULT_OK, intent);
+                close(Activity.RESULT_OK, extraData);
             }
         });
 
@@ -157,15 +153,14 @@ public class ScanFragment extends KioskFragment implements ZXingScannerView.Resu
         final String scan_Result = rawResult.getText();
 
         //Call back data to main activity
-        final Intent intent = new Intent();
-
-        intent.putExtra(PatrolFragment.CONTENT, rawResult.getText());
+        Bundle extraData = new Bundle();
+        extraData.putString(PatrolFragment.CONTENT, scan_Result);
 
 
         Log.i("RFC", "scanned");
         if(scan_Result != null){
             Log.i("RFC", "scanned true");
-            showPositivePopup(intent);
+            showPositivePopup(extraData);
         }else{
             showNegativePopup();
             // finish();
@@ -173,4 +168,9 @@ public class ScanFragment extends KioskFragment implements ZXingScannerView.Resu
 
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        this.close(Activity.RESULT_CANCELED, null);
+    }
 }

@@ -10,8 +10,24 @@
 
 
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        app:theme="@style/ToolbarStyle"
+        android:background="@color/colorPrimary"
+        app:title="VanGaurd"
+        app:titleTextColor="#FFFFFF"
+        />
+
+    <View
+        android:layout_below="@id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:background="@drawable/drop_down"/>
 
     <android.support.v7.widget.CardView
+        android:layout_below="@id/my_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
@@ -79,10 +95,8 @@
             android:layout_height="wrap_content"
             android:text="PANIC !!!"
             android:layout_alignParentBottom="true"
-            android:layout_margin="10dp"
             android:textColor="#FFF"
             android:textStyle="bold"
-            android:background="@drawable/round_corners"
-            android:backgroundTint="#d7342a"/>
+            android:background="@color/colorPrimary"/>
 
     </RelativeLayout>
