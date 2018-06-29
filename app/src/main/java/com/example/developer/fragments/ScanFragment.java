@@ -19,12 +19,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.developer.fullpatrol.Display;
 import com.example.developer.fullpatrol.R;
 import com.google.zxing.Result;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
