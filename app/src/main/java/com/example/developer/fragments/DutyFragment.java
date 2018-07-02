@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
@@ -192,15 +193,30 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             @Override
             public void onTick(long millisUntilFinished) {
                 updateCountDownText(millisUntilFinished);
+
+                if(millisUntilFinished<=3000){
+
+                    if(!MainActivity.wakeActive){
+                        MainActivity.wakeActive = true;
+                        ((MainActivity)getActivity()).wakeUpDevice();
+                    }
+
+                    Log.i(TAG, "onTick: is on");
+                }
             }
 
             @Override
             public void onFinish() {
                 Intent intent = new Intent("com.example.intent.restart");
                 intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_TIMER);
-                
+
                 getContext().sendBroadcast(intent);
                 Toast.makeText(getActivity(), "TIMER ACTIVITY 1", Toast.LENGTH_SHORT).show();
+                //release wakelock
+                if(MainActivity.wakeActive){
+                    MainActivity.wakeActive = false;
+                    ((MainActivity)getActivity()).setDeviceSleep();
+                }
             }
         }.start();
     }

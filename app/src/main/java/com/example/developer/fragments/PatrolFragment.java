@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -78,6 +80,10 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         super.onCreate(savedInstanceState);
         this.panicCount = MainActivity.MAX_PANIC_TAPS;
         this.panicToast = Toast.makeText(this.getContext(), String.format("press panic %d more times", panicCount), Toast.LENGTH_SHORT);
+
+
+        getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //((MainActivity)getActivity()).wakeUpDevice();
     }
 
     @Nullable
@@ -161,6 +167,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
             @Override
             public void onFinish() {
+
+               // ((MainActivity)getActivity()).setDeviceSleep();
                 crvTimeout.setVisibility(View.GONE);
                 firebaseManager.sendEventType(MainActivity.eventsCollection, "No Points Visited", 22, "");
                 timePatrolDuration.cancel();
@@ -232,6 +240,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     }
 
     private void close(){
+
+        ((MainActivity)getActivity()).setDeviceSleep();
         PatrolFragment.this.removeSelf();
     }
 

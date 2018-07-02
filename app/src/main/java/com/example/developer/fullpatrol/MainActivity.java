@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.CountDownTimer;
+import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -17,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.developer.fragments.AuthenticationFragment;
 import com.example.developer.fragments.ControlPanelFragment;
@@ -48,6 +50,9 @@ public class MainActivity extends LockableActivity {
     FirebaseManager firebaseManager;
     SiteDataManager siteDataManager;
 
+    //wakelock stuff
+    PowerManager.WakeLock wakelock;
+
     private KioskFragment[] kioskFragments = {new DutyFragment(), new PatrolFragment(), new ScanFragment(), new AuthenticationFragment(), new ControlPanelFragment()};
 
 
@@ -61,16 +66,23 @@ public class MainActivity extends LockableActivity {
 
     public static String _dutyStatus = "ON DUTY";
     private FragmentManager fragmentManager;
+    public static boolean wakeActive;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.Lock();
 
+        wakeActive = false;
 
         setContentView(R.layout.main_layout);
+
+        Toast.makeText(this, "On MainActivity Created. . .", Toast.LENGTH_SHORT).show();
+
+
         fragmentManager = this.getSupportFragmentManager();
-        this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
         String siteId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
@@ -81,6 +93,8 @@ public class MainActivity extends LockableActivity {
             Log.i(TAG, "onCreate: null site id");
         }
     }
+
+
 
 
 
@@ -109,7 +123,22 @@ public class MainActivity extends LockableActivity {
 
 
 
+    public void wakeUpDevice() {
 
+        PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
+        wakelock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK |
+                PowerManager.ACQUIRE_CAUSES_WAKEUP
+                | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
+
+        wakelock.acquire();
+    }
+
+    public void setDeviceSleep() {
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (wakelock.isHeld())
+            wakelock.release();
+
+    }
 
     @Override
     public boolean onSupportNavigateUp() {
