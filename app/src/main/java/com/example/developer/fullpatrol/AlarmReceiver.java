@@ -56,7 +56,7 @@ public class AlarmReceiver extends BroadcastReceiver{
 
         this.ReceiveTime = System.currentTimeMillis();
 
-        firebaseManager.getPatrolData(new FirebaseManager.DataCallback() {
+        firebaseManager.getPatrolDataInSync(new FirebaseManager.DataCallback() {
             @Override
             public void onDataReceived(Map<String, Object> data) {
                 siteDataManager.compareAndUpdate(data, new SiteDataManager.CompareCallback() {
@@ -67,6 +67,8 @@ public class AlarmReceiver extends BroadcastReceiver{
                         firebaseManager.getPatrolPoints(pointCol, new FirebaseManager.DataCallback() {
                             @Override
                             public void onDataReceived(Map<String, Object> empty) {
+
+
 
 
                                 Calendar calendar = Calendar.getInstance();
@@ -119,6 +121,9 @@ public class AlarmReceiver extends BroadcastReceiver{
                                         updateTime(context, (nxtTime - System.currentTimeMillis()) / 60000.0);
                                         Log.i("RFC", "Execute");
                                         //unlockMain(context);
+                                        if(interpol.started())
+                                            return;
+                                        interpol.setStarted(true);
                                         startPatrol(context);
                                     }
 
@@ -139,7 +144,7 @@ public class AlarmReceiver extends BroadcastReceiver{
 
 
                                 }
-
+                                interpol.setStarted(false);
                                 interpol.setExecuting(false);
                             }
 

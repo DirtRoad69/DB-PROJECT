@@ -240,8 +240,12 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     }
 
     private void close(){
+        try {
 
-        ((MainActivity)getActivity()).setDeviceSleep();
+            ((MainActivity)getActivity()).setDeviceSleep();
+        }catch (Exception e){
+            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
         PatrolFragment.this.removeSelf();
     }
 

@@ -106,7 +106,7 @@ public class MainActivity extends LockableActivity {
 
 
 
-        this.firebaseManager.getPatrolData(new FirebaseManager.DataCallback() {
+        this.firebaseManager.getPatrolDataInSync(new FirebaseManager.DataCallback() {
             @Override
             public void onDataReceived(Map<String, Object> data) {
                 MainActivity.this.siteDataManager.setData(data);
@@ -295,10 +295,12 @@ public class MainActivity extends LockableActivity {
     }
 
     public void addFragment(KioskFragment fragment){
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.add(R.id.frame_container, fragment, fragment.getTitle());
-        transaction.addToBackStack(fragment.getTitle());
-        transaction.commit();
+
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.add(R.id.frame_container, fragment, fragment.getTitle());
+            transaction.addToBackStack(fragment.getTitle());
+            transaction.commit();
+
     }
 
     public void removeFragment(String title) {

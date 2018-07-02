@@ -5,8 +5,9 @@ public class Interpol {
     private static final long THRESHOLD = 1000;
     private long nextTime;
     private boolean isExecuting, isOutOfMainActivity;
+    private boolean isStarted;
 
-    private Interpol(){ this. isExecuting = false; this.isOutOfMainActivity = false;}
+    private Interpol(){ this.isExecuting = false; this.isOutOfMainActivity = false; this.isStarted = false; }
 
     public boolean execute(long time){
         return (Math.abs(time - nextTime) <= THRESHOLD);
@@ -50,4 +51,11 @@ public class Interpol {
         return instance;
     }
 
+    public void setStarted(boolean bool) {
+         this.isStarted = bool;
+    }
+
+    public boolean started() {
+        return isStarted;
+    }
 }

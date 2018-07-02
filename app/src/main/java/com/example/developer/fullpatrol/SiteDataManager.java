@@ -34,21 +34,21 @@ public class SiteDataManager {
     }
 
     public void compareAndUpdate(Map<String, Object> data, CompareCallback compareCallback){
-        Object[] keyCollection = dataField.keySet().toArray();
-        for(int pos = 0; pos < data.size(); pos++){
-            String key = keyCollection[pos].toString();
-            Log.i("RFC", key + "|" + data.get(key) + "|" + dataField.get(key));
-
-            if(!data.containsKey(key))
-                continue;
-
-            String newValue = data.get(key).toString(), oldValue = dataField.get(key).toString();
-            if(!newValue.equals(oldValue)){
-                dataField.put(key, data.get(key));
-                compareCallback.valueChanged(keyCollection[pos].toString());
-
-            }
-        }
+//        Object[] keyCollection = dataField.keySet().toArray();
+//        for(int pos = 0; pos < data.size(); pos++){
+//            String key = keyCollection[pos].toString();
+//            Log.i("RFC", key + "|" + data.get(key) + "|" + dataField.get(key));
+//
+//            if(!data.containsKey(key))
+//                continue;
+//
+//            String newValue = data.get(key).toString(), oldValue = dataField.get(key).toString();
+//            if(!newValue.equals(oldValue)){
+//                dataField.put(key, data.get(key));
+//                compareCallback.valueChanged(keyCollection[pos].toString());
+//
+//            }
+//        }
         compareCallback.onCompareFinished();
     }
 

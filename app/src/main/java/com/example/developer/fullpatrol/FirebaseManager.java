@@ -1,6 +1,7 @@
 package com.example.developer.fullpatrol;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -12,8 +13,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -29,6 +32,7 @@ public class FirebaseManager {
     private static FirebaseManager instance;
     private FirebaseFirestore db;
     private DocumentReference docRef;
+    private DocumentReference docRefData;
 
     private FirebaseManager(){
 
@@ -37,6 +41,7 @@ public class FirebaseManager {
     public void init(String site, String docPath){
         this.db = FirebaseFirestore.getInstance();
         this.docRef = db.collection(site).document(docPath);
+        this.docRefData = db.collection(site).document(docPath);
     }
     public void init(){
         this.db = FirebaseFirestore.getInstance();
@@ -305,6 +310,43 @@ public class FirebaseManager {
             }
         });
 
+    }
+
+    public void getPatrolDataInSync(final DataCallback dataCallback){
+
+        docRefData.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot snapshot,
+                                @Nullable FirebaseFirestoreException e) {
+                if (e != null) {
+                    Log.w("asd", "Listen failed.", e);
+                    return;
+                }
+
+                String source = snapshot != null && snapshot.getMetadata().hasPendingWrites()
+                        ? "Local" : "Server";
+
+                if (snapshot != null && snapshot.exists()) {
+                    Log.d("asd", source + " data: " + snapshot.getData());
+                    Log.d("asd", "DocumentSnapshot data: " + snapshot.getData());
+                    String startPatrolTime = snapshot.getString("startPatrolTime"), endPatrolTime = snapshot.getString("endPatrolTime");
+                    String[] times = (startPatrolTime + ":" + endPatrolTime).replace(" ", "").split(":");
+
+                    Map<String, Object> data = snapshot.getData();
+                    data.put("startHour", Integer.parseInt(times[0]));
+                    data.put("startMin", Integer.parseInt(times[1]));
+                    data.put("endHour", Integer.parseInt(times[2]));
+                    data.put("endMin", Integer.parseInt(times[3]));
+
+                    Log.d("asd", source + " data: null");
+                    if(dataCallback != null){
+                        dataCallback.onDataReceived(data);
+                    }
+                } else {
+                    Log.d("asd", source + " data: null");
+                }
+            }
+        });
     }
 
     public void getPatrolData(final DataCallback dataCallback){
