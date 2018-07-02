@@ -1,5 +1,6 @@
 package com.example.developer.fullpatrol;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -299,8 +300,14 @@ public class MainActivity extends LockableActivity {
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.add(R.id.frame_container, fragment, fragment.getTitle());
             transaction.addToBackStack(fragment.getTitle());
-            transaction.commit();
+            transaction.commitAllowingStateLoss();
 
+    }
+
+    @SuppressLint("MissingSuperCall")
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        //
     }
 
     public void removeFragment(String title) {

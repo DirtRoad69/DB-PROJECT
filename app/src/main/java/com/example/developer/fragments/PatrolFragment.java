@@ -41,6 +41,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     private static final int REQ_SCAN = 123
             ,MIN_TO_MIL = 60000;
 
+
     private FirebaseManager firebaseManager;
     private  SiteDataManager siteDataManager;
 
@@ -62,9 +63,10 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
     private CountDownTimer timePatrolDuration
             ,timeCountDown;
-
-
-
+    private long timePatrolEnded;
+    private long MIN_TIME;
+    private long MAX_TIME;
+    long durationPatrol;
     public PatrolFragment(){
         this.firebaseManager = FirebaseManager.getInstance();
         this.siteDataManager = SiteDataManager.getInstance();
@@ -124,8 +126,13 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         int countDown = this.siteDataManager.getLong("countDown").intValue() * MIN_TO_MIL;
         int patrolTimer = this.siteDataManager.getLong("patrolTimer").intValue() * MIN_TO_MIL;
 
+        MAX_TIME = this.siteDataManager.getLong("maxPatrolTime") * MIN_TO_MIL;
+        MIN_TIME = this.siteDataManager.getLong("minPatrolTime") * MIN_TO_MIL;
+
+        Log.i("asd", "setUpData: "+ MAX_TIME/MIN_TO_MIL);
+
         long durationEndStart = (AlarmReceiver.ReceiveTime + countDown) - System.currentTimeMillis();
-        long durationPatrol = (AlarmReceiver.ReceiveTime + patrolTimer) - System.currentTimeMillis();
+        durationPatrol = (AlarmReceiver.ReceiveTime + patrolTimer) - System.currentTimeMillis();
 
         startTimerCountDown(durationEndStart);
         startTimerPatrolDuration(durationPatrol);
@@ -141,6 +148,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 int seconds = (int) (millisUntilFinished / 1000) % 60;
 
                 String timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+                timePatrolEnded = millisUntilFinished;
 
                 ttvDuraton.setText(timeLeftFormatted);
             }
@@ -192,8 +200,9 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                         }else{
                             listItems.add(get(pointCol,scanData));
                             patrol();
+
                             if(listItems.size()>1){
-                                this.firebaseManager.sendEventType(MainActivity.eventsCollection,"",scanData, 0, "");
+                                this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Point Scanned",scanData, 0, "");
                                 Toast.makeText(getContext(),"Point scanned", Toast.LENGTH_LONG).show();
                             }
                         }
@@ -218,9 +227,31 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         //check if patrol ended
         if(listItems.size() > 1){
             if (listItems.get(listItems.size()-1).pointId.equals(startingPoint.pointId)){
+
+                Log.i(TAG, "min: "+MIN_TIME);
+                Log.i(TAG, "max: "+MAX_TIME);
+
+                timePatrolEnded = Math.abs(timePatrolEnded - durationPatrol);
+                Log.i(TAG, "timePatrolEnded: "+timePatrolEnded);
+                if(timePatrolEnded >= MAX_TIME){
+                    //patrol too quick
+
+
+                    this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Guard Returned Late", 17, "");
+                }else if(timePatrolEnded <= MIN_TIME ){
+                    //patrol to fast
+
+
+                    this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrolled Too Quickly", 5, "");
+
+                }
+
+
+                this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrol Ended", 66, "");
                 Toast.makeText(getContext(), " --Patrol ended-- ", Toast.LENGTH_LONG).show();
                 timePatrolDuration.cancel();
                 timeCountDown.cancel();
+
                 verityPatrol(listItems, pointCol, false);
             }
         }
@@ -287,6 +318,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         //array of missed points
         List<PatrolPoint> missedPoints = new ArrayList<>();
 
+
         //loop over scanned points and check if all
         for(int i=0; i < pointCollection.size();i++){
             if(!scannedPoints.contains(pointCollection.get(i))){
@@ -296,6 +328,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
             }
         }
         int tot =  missedPoints.size();
+
 
 
 
