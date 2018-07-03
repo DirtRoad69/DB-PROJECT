@@ -6,6 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -21,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -194,11 +198,15 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             public void onTick(long millisUntilFinished) {
                 updateCountDownText(millisUntilFinished);
 
-                if(millisUntilFinished<=3000){
-
-                    if(!MainActivity.wakeActive){
-                        MainActivity.wakeActive = true;
+                if(millisUntilFinished<=10000){
+                    getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                         ((MainActivity)getActivity()).wakeUpDevice();
+                    try {
+                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
+                        r.play();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
 
                     Log.i(TAG, "onTick: is on");
@@ -213,10 +221,9 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
                 getContext().sendBroadcast(intent);
                 Toast.makeText(getActivity(), "TIMER ACTIVITY 1", Toast.LENGTH_SHORT).show();
                 //release wakelock
-                if(MainActivity.wakeActive){
-                    MainActivity.wakeActive = false;
+
                     ((MainActivity)getActivity()).setDeviceSleep();
-                }
+
             }
         }.start();
     }

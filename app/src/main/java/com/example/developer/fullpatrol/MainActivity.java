@@ -131,7 +131,9 @@ public class MainActivity extends LockableActivity {
                 PowerManager.ACQUIRE_CAUSES_WAKEUP
                 | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
 
-        wakelock.acquire();
+        if(!wakelock.isHeld()){
+            wakelock.acquire();
+        }
     }
 
     public void setDeviceSleep() {

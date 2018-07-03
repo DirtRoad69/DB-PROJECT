@@ -83,7 +83,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         this.panicCount = MainActivity.MAX_PANIC_TAPS;
         this.panicToast = Toast.makeText(this.getContext(), String.format("press panic %d more times", panicCount), Toast.LENGTH_SHORT);
 
-
+        MainActivity.wakeActive = false;
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         //((MainActivity)getActivity()).wakeUpDevice();
     }
@@ -272,7 +272,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
     private void close(){
         try {
-
+            MainActivity.wakeActive = false;
             ((MainActivity)getActivity()).setDeviceSleep();
         }catch (Exception e){
             Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
