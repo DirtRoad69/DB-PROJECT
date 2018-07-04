@@ -347,7 +347,9 @@ public class FirebaseManager {
 
                     Log.d("asd", source + " data: null");
                     if(dataCallback != null){
+                        dataCallback.onDataUpdated(data);
                         dataCallback.onDataReceived(data);
+
                     }
                 } else {
                     Log.d("asd", source + " data: null");
@@ -432,6 +434,8 @@ public class FirebaseManager {
     }
 
     public interface DataCallback{
+
+        void onDataUpdated(Map<String, Object> data);
         void onDataReceived(Map<String, Object> data);
         void onDataReceived(List<Map<String, Object>> data);
     }

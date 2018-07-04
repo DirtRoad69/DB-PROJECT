@@ -109,6 +109,11 @@ public class LinkDeviceActivity extends AppCompatActivity implements View.OnClic
 
         firebaseManager.getCollection("machines", "timeStamp", 1, new FirebaseManager.DataCallback() {
             @Override
+            public void onDataUpdated(Map<String, Object> data) {
+
+            }
+
+            @Override
             public void onDataReceived(Map<String, Object> data) {
 
             }

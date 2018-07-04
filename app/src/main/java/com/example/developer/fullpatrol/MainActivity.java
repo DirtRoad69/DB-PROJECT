@@ -122,14 +122,35 @@ public class MainActivity extends LockableActivity {
         this.firebaseManager.init(collection, siteId);
 
 
+        this.firebaseManager.getPatrolData(new FirebaseManager.DataCallback() {
+            @Override
+            public void onDataUpdated(Map<String, Object> data) {
 
+            }
 
-        this.firebaseManager.getPatrolDataInSync(new FirebaseManager.DataCallback() {
             @Override
             public void onDataReceived(Map<String, Object> data) {
                 MainActivity.this.siteDataManager.setData(data);
                 MainActivity.this.addFragment(new DutyFragment());
                 MainActivity.this.setFirstTimeAlarm();
+            }
+
+            @Override
+            public void onDataReceived(List<Map<String, Object>> data) {
+
+            }
+        });
+
+
+        this.firebaseManager.getPatrolDataInSync(new FirebaseManager.DataCallback() {
+
+            @Override
+            public void onDataUpdated(Map<String, Object> data) {
+                MainActivity.this.siteDataManager.setData(data);
+            }
+            @Override
+            public void onDataReceived(Map<String, Object> data) {
+
             }
 
             @Override

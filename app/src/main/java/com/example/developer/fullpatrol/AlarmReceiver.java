@@ -56,7 +56,12 @@ public class AlarmReceiver extends BroadcastReceiver{
 
         this.ReceiveTime = System.currentTimeMillis();
 
-        firebaseManager.getPatrolDataInSync(new FirebaseManager.DataCallback() {
+        firebaseManager.getPatrolData(new FirebaseManager.DataCallback() {
+            @Override
+            public void onDataUpdated(Map<String, Object> data) {
+
+            }
+
             @Override
             public void onDataReceived(Map<String, Object> data) {
                 siteDataManager.compareAndUpdate(data, new SiteDataManager.CompareCallback() {
@@ -65,6 +70,11 @@ public class AlarmReceiver extends BroadcastReceiver{
                         String  pointCol = "site/"+ context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null) +"/patrolPoints";
                         Log.i("RFV", pointCol);
                         firebaseManager.getPatrolPoints(pointCol, new FirebaseManager.DataCallback() {
+                            @Override
+                            public void onDataUpdated(Map<String, Object> data) {
+
+                            }
+
                             @Override
                             public void onDataReceived(Map<String, Object> empty) {
 

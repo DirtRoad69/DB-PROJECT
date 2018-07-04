@@ -129,6 +129,11 @@ public class InputCollector extends LockableActivity implements View.OnClickList
                         final String userId = mAuth.getCurrentUser().getUid();
                         firebaseManager.getData("users", "owner", new FirebaseManager.DataCallback() {
                             @Override
+                            public void onDataUpdated(Map<String, Object> data) {
+
+                            }
+
+                            @Override
                             public void onDataReceived(Map<String, Object> data) {
                                 String ownerId = data.get("userId").toString();
                                 if(userId.equals(ownerId)){

@@ -197,7 +197,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             @Override
             public void onTick(long millisUntilFinished) {
                 updateCountDownText(millisUntilFinished);
-                if(millisUntilFinished <= 10000){
+                if(millisUntilFinished <= 30000){
                     ((MainActivity)getActivity()).wakeUpScreen();
                     try {
                         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -220,7 +220,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
                 Toast.makeText(getActivity(), "TIMER ACTIVITY 1", Toast.LENGTH_SHORT).show();
                 //release wakelock
 
-                    ((MainActivity)getActivity()).setScreenSleep();
+                //((MainActivity)getActivity()).setScreenSleep();
 
             }
         }.start();
