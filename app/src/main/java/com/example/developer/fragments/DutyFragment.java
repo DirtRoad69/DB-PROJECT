@@ -77,7 +77,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setHasOptionsMenu(true);
-
+        ((MainActivity)getActivity()).wakeUpDevice();
         IntentFilter filter = new IntentFilter();
         filter.addAction(AlarmReceiver.ACTION_REST_ALARM);
         filter.addAction(AlarmReceiver.ACTION_REST_COUNTER);
@@ -197,10 +197,8 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             @Override
             public void onTick(long millisUntilFinished) {
                 updateCountDownText(millisUntilFinished);
-
-                if(millisUntilFinished<=10000){
-                    getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                        ((MainActivity)getActivity()).wakeUpDevice();
+                if(millisUntilFinished <= 10000){
+                    ((MainActivity)getActivity()).wakeUpScreen();
                     try {
                         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                         Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
@@ -222,7 +220,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
                 Toast.makeText(getActivity(), "TIMER ACTIVITY 1", Toast.LENGTH_SHORT).show();
                 //release wakelock
 
-                    ((MainActivity)getActivity()).setDeviceSleep();
+                    ((MainActivity)getActivity()).setScreenSleep();
 
             }
         }.start();

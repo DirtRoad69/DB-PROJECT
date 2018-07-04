@@ -67,6 +67,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     private long MIN_TIME;
     private long MAX_TIME;
     long durationPatrol;
+    int patrolTimer;
     public PatrolFragment(){
         this.firebaseManager = FirebaseManager.getInstance();
         this.siteDataManager = SiteDataManager.getInstance();
@@ -124,7 +125,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         listItems = new ArrayList<>();
 
         int countDown = this.siteDataManager.getLong("countDown").intValue() * MIN_TO_MIL;
-        int patrolTimer = this.siteDataManager.getLong("patrolTimer").intValue() * MIN_TO_MIL;
+        patrolTimer = this.siteDataManager.getLong("patrolTimer").intValue() * MIN_TO_MIL;
 
         MAX_TIME = this.siteDataManager.getLong("maxPatrolTime") * MIN_TO_MIL;
         MIN_TIME = this.siteDataManager.getLong("minPatrolTime") * MIN_TO_MIL;
@@ -231,7 +232,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 Log.i(TAG, "min: "+MIN_TIME);
                 Log.i(TAG, "max: "+MAX_TIME);
 
-                timePatrolEnded = Math.abs(timePatrolEnded - durationPatrol);
+                timePatrolEnded = Math.abs(timePatrolEnded - patrolTimer);
                 Log.i(TAG, "timePatrolEnded: "+timePatrolEnded);
                 if(timePatrolEnded >= MAX_TIME){
                     //patrol too quick
@@ -273,7 +274,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     private void close(){
         try {
             MainActivity.wakeActive = false;
-            ((MainActivity)getActivity()).setDeviceSleep();
+            ((MainActivity)getActivity()).setScreenSleep();
         }catch (Exception e){
             Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }

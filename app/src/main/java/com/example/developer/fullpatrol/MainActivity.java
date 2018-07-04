@@ -7,8 +7,10 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.CountDownTimer;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -38,7 +40,7 @@ import java.util.Map;
 public class MainActivity extends LockableActivity {
 
     public static final String TAG = "PatrolFragment"
-            ,eventsCollection = "patrolDataDummy"
+            ,eventsCollection = "events"
             ,PANIC_EVENT_DESCRIPTION = "Panic";
 
     //setup data
@@ -46,6 +48,7 @@ public class MainActivity extends LockableActivity {
             , PANIC_REST_DURATION = 5000
             , PANIC_EVENT_ID = 8;
     public static final String SITES_COLLECTION = "site";
+    public static String siteId;
 
     //firebase stuff
     FirebaseManager firebaseManager;
@@ -66,16 +69,29 @@ public class MainActivity extends LockableActivity {
     public static PendingIntent alarmIntent;
 
     public static String _dutyStatus = "ON DUTY";
+    public static String deviceId;
+
+
     private FragmentManager fragmentManager;
     public static boolean wakeActive;
+    private PowerManager.WakeLock wakelock2;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.Lock();
-
+        deviceId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_UID, null);
         wakeActive = false;
+        PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
+        wakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "wake up");
+        wakelock.setReferenceCounted(false);
+
+        wakelock2 = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK |
+                PowerManager.ACQUIRE_CAUSES_WAKEUP
+                | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
+        wakelock2.setReferenceCounted(false);
+
 
         setContentView(R.layout.main_layout);
 
@@ -86,7 +102,8 @@ public class MainActivity extends LockableActivity {
         //this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-        String siteId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
+
+        siteId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
         if(siteId != null){
             this.startKioskSession(SITES_COLLECTION, siteId);
         }else{
@@ -123,13 +140,20 @@ public class MainActivity extends LockableActivity {
     }
 
 
+    public void wakeUpScreen() {
 
+        if(!wakelock2.isHeld()){
+            wakelock2.acquire();
+        }
+    }
+
+    public void setScreenSleep() {
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (wakelock2.isHeld())
+            wakelock2.release();
+
+    }
     public void wakeUpDevice() {
-
-        PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
-        wakelock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK |
-                PowerManager.ACQUIRE_CAUSES_WAKEUP
-                | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
 
         if(!wakelock.isHeld()){
             wakelock.acquire();

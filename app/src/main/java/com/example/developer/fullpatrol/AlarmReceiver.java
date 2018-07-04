@@ -92,7 +92,7 @@ public class AlarmReceiver extends BroadcastReceiver{
                                 if(hour >= endHour && min >= endMin){
                                     //Session Over
                                     DutyFragment.DutyStatus = "OFF DUTY";
-                                    firebaseManager.sendEventType("patrolDataDummy",  DutyFragment.DutyStatus , 10, "site");
+                                    firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
                                     resetAlarm(context);
                                     calendar.add(Calendar.DATE, 1);
                                     interpol.setNextTime(calendar.getTimeInMillis());
@@ -114,7 +114,7 @@ public class AlarmReceiver extends BroadcastReceiver{
 
                                     }else{
                                         if(DutyFragment.DutyStatus.equals("OFF DUTY")){
-                                            firebaseManager.sendEventType("patrolDataDummy",  "ON DUTY" , 2, "site");
+                                            firebaseManager.sendEventType("events",  "ON DUTY" , 2, "site");
                                         }
                                         DutyFragment.DutyStatus = "ON DUTY";
                                         interpol.setNextTime(nxtTime);
@@ -170,7 +170,7 @@ public class AlarmReceiver extends BroadcastReceiver{
                                 long nxtTime =  Interpol.getNextTimePatrol(calendar.getTimeInMillis(), 1000*60* siteDataManager.getLong("intervalTimer").intValue());
                                 if(nxtTime < 0){
                                     DutyFragment.DutyStatus = "OFF DUTY";
-                                    firebaseManager.sendEventType("patrolDataDummy",  DutyFragment.DutyStatus , 10, "site");
+                                    firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
                                     resetAlarm(context);
                                 }
                                 break;

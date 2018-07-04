@@ -96,7 +96,7 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
         Map<String, Object> data = new HashMap<>();
         data.put("isActive", isActive);
         showProgress("Kiosk Mode", "Please Wait. " + (isActive ? "Enabling" : "Disabling") +" Kiosk Mode.");
-        firebaseManager.updateField("machineCodes", uid, data, new FirebaseManager.DataPushCallack() {
+        firebaseManager.updateField("machines", uid, data, new FirebaseManager.DataPushCallack() {
             @Override
             public void onPushed() {
                 dismissProgress();
@@ -217,7 +217,7 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
 
     private void unlink(String uid) {
 
-        firebaseManager.unlinkDevice(uid, "machineCodes", "siteMachines", new FirebaseManager.DataPushCallack() {
+        firebaseManager.unlinkDevice(uid, "machines", "siteMachines", new FirebaseManager.DataPushCallack() {
             @Override
             public void onPushed() {
                 spnEnable.setChecked(false);

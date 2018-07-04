@@ -107,7 +107,7 @@ public class LinkDeviceActivity extends AppCompatActivity implements View.OnClic
     private void generateUID() {
         showProgress("Unique Id", "Generating Unique id for device...");
 
-        firebaseManager.getCollection("machineCodes", "timeStamp", 1, new FirebaseManager.DataCallback() {
+        firebaseManager.getCollection("machines", "timeStamp", 1, new FirebaseManager.DataCallback() {
             @Override
             public void onDataReceived(Map<String, Object> data) {
 
@@ -155,7 +155,7 @@ public class LinkDeviceActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void createDeviceOnFireStore(final String uid) {
-        firebaseManager.addDevice("machineCodes", false,"none", uid, new FirebaseManager.DataPushCallack() {
+        firebaseManager.addDevice("machines", false,"none", uid, new FirebaseManager.DataPushCallack() {
             @Override
             public void onPushed() {
                 dismissProgress();

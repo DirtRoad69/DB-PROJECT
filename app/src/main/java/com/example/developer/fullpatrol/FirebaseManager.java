@@ -1,5 +1,8 @@
 package com.example.developer.fullpatrol;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -33,6 +36,7 @@ public class FirebaseManager {
     private FirebaseFirestore db;
     private DocumentReference docRef;
     private DocumentReference docRefData;
+
 
     private FirebaseManager(){
 
@@ -113,14 +117,16 @@ public class FirebaseManager {
 
     public void sendEventType(String collection, String description, int eventID, String siteID){
         Map<String, Object> event = new HashMap<>();
-        event.put("siteId", siteID);
+        event.put("siteId", MainActivity.siteId);
         event.put("eventId", eventID);
+        event.put("machineId", MainActivity.deviceId);
         event.put("description", description);
         event.put("timeStamp", FieldValue.serverTimestamp());
         event.put("location", "N-S");
         addSite(collection, event);
 
     }
+
     public void addDevice(String collection, boolean isActive, String siteID, String documentId ,DataPushCallack dataPushCallack){
         Map<String, Object> machine = new HashMap<>();
         machine.put("isActive", isActive);
@@ -134,7 +140,7 @@ public class FirebaseManager {
         Map<String, Object> ref = new HashMap<>();
 
         final DocumentReference documentReferenceToSite = db.collection("site").document(docSiteId);
-        final DocumentReference documentReference = db.collection("machineCodes").document(doucumentId);
+        final DocumentReference documentReference = db.collection("machines").document(doucumentId);
         ref.put("machineId", documentReference);
         db.collection(col).add(ref).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
             @Override
@@ -214,9 +220,10 @@ public class FirebaseManager {
     }
     public void sendEventType(String collection, String description, String pointId, int eventID, String siteID){
         Map<String, Object> event = new HashMap<>();
-        event.put("siteId", siteID);
+        event.put("siteId", MainActivity.siteId);
         event.put("eventId", eventID);
         event.put("pointId", pointId);
+        event.put("machineId", MainActivity.deviceId);
         event.put("description", description);
         event.put("timeStamp", FieldValue.serverTimestamp());
         event.put("location", "N-S");
