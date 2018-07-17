@@ -134,7 +134,6 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
 
         this.stopService(dispatcherIntent);
 
-
     }
 
     @Override

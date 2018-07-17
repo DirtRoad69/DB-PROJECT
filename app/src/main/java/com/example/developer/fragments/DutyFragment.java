@@ -121,6 +121,8 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         this.txtCountDown = parentView.findViewById(R.id.ttv_time);
         this.txtDutyStatus = parentView.findViewById(R.id.ttv_duty_status);
 
+        ((MainActivity)getActivity()).setScreenSleep();
+
         btnPanic.setOnClickListener(this);
 
         this.mTopToolbar =  parentView.findViewById(R.id.my_toolbar);
@@ -213,6 +215,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
 
             @Override
             public void onFinish() {
+
                 Intent intent = new Intent("com.example.intent.restart");
                 intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_TIMER);
 

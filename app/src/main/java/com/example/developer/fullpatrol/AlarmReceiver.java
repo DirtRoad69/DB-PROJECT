@@ -43,7 +43,7 @@ public class AlarmReceiver extends BroadcastReceiver{
         this.interpol = Interpol.getInstance();
 
 
-
+        Log.i("RFC", "onReceive: " + !interpol.execute(System.currentTimeMillis()));
 
 
             if(!interpol.execute(System.currentTimeMillis()))
