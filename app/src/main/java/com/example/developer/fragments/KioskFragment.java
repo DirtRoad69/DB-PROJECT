@@ -1,12 +1,10 @@
 package com.example.developer.fragments;
 
-
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 
 import com.example.developer.fullpatrol.MainActivity;
+
 
 public abstract class KioskFragment extends Fragment {
     private int requestCode = Integer.MAX_VALUE;
@@ -28,6 +26,12 @@ public abstract class KioskFragment extends Fragment {
     public void removeSelf(int resultCode, Bundle extraData) {
         ((MainActivity)this.getActivity()).removeFragment(this.getTitle(),resultCode, extraData);
     }
+    public void removeSelfLearningMode(int resultCode, Bundle extraData) {
+        ((MainActivity)this.getActivity()).removeFragmentLearningMode(this.getTitle(),resultCode, extraData);
+    }
+    public void removePointLearningMode(int resultCode, Bundle extraData) {
+        ((MainActivity)this.getActivity()).removePointFragmentLearningMode(this.getTitle(),resultCode, extraData);
+    }
 
 
     public final void onResult(int resultCode, Bundle extraData) {
@@ -35,7 +39,7 @@ public abstract class KioskFragment extends Fragment {
         this.requestCode = Integer.MAX_VALUE;
     }
 
-    
+
 
     protected void onFragmentResult(int requestCode, int resultCode, Bundle extraData) {
     }

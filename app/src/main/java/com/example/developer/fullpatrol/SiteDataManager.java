@@ -18,6 +18,7 @@ public class SiteDataManager {
 
 
     public void setData(Map<String, Object> data){
+
         dataField.putAll(data);
     }
 
@@ -26,29 +27,15 @@ public class SiteDataManager {
     }
 
     public int getInt(String key){
-        return  (int)dataField.get(key);
+        return  Integer.valueOf(dataField.get(key).toString());
     }
 
     public Long getLong(String key){
-        return  (Long) dataField.get(key);
+        return  Long.valueOf(dataField.get(key).toString());
     }
 
     public void compareAndUpdate(Map<String, Object> data, CompareCallback compareCallback){
-//        Object[] keyCollection = dataField.keySet().toArray();
-//        for(int pos = 0; pos < data.size(); pos++){
-//            String key = keyCollection[pos].toString();
-//            Log.i("RFC", key + "|" + data.get(key) + "|" + dataField.get(key));
-//
-//            if(!data.containsKey(key))
-//                continue;
-//
-//            String newValue = data.get(key).toString(), oldValue = dataField.get(key).toString();
-//            if(!newValue.equals(oldValue)){
-//                dataField.put(key, data.get(key));
-//                compareCallback.valueChanged(keyCollection[pos].toString());
-//
-//            }
-//        }
+
         compareCallback.onCompareFinished();
     }
 
@@ -67,6 +54,5 @@ public class SiteDataManager {
 
     public interface CompareCallback{
         void onCompareFinished();
-        void valueChanged(String key);
     }
 }

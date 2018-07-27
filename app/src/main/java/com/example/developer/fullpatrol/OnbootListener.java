@@ -41,10 +41,12 @@ public class OnbootListener extends BroadcastReceiver {
     }
 
     private void showKiosk(Context context){
+        Log.i(TAG, "showKiosk: we are off");
         /**the process of starting the Kiosk Activty.*/
         if(Interpol.getInstance().isOutOfMainActivity())
             return;
 
+        Log.i(TAG, "showKiosk: we are on");
         Intent i = new Intent(context, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(i);

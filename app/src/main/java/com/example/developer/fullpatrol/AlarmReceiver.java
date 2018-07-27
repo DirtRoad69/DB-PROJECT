@@ -1,23 +1,17 @@
 package com.example.developer.fullpatrol;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.CountDownTimer;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.developer.fragments.DutyFragment;
+import com.example.developer.objects.PatrolPoint;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class AlarmReceiver extends BroadcastReceiver{
@@ -56,7 +50,7 @@ public class AlarmReceiver extends BroadcastReceiver{
 
         this.ReceiveTime = System.currentTimeMillis();
 
-        firebaseManager.getPatrolData(new FirebaseManager.DataCallback() {
+        firebaseManager.getPatrolDataLocally(new FirebaseManager.DataCallback() {
             @Override
             public void onDataUpdated(Map<String, Object> data) {
 
@@ -69,7 +63,7 @@ public class AlarmReceiver extends BroadcastReceiver{
                     public void onCompareFinished() {
                         String  pointCol = "site/"+ context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null) +"/patrolPoints";
                         Log.i("RFV", pointCol);
-                        firebaseManager.getPatrolPoints(pointCol, new FirebaseManager.DataCallback() {
+                        firebaseManager.getPatrolPointsLocally(pointCol, new FirebaseManager.DataCallback() {
                             @Override
                             public void onDataUpdated(Map<String, Object> data) {
 
@@ -166,26 +160,26 @@ public class AlarmReceiver extends BroadcastReceiver{
 
                     }
 
-                    @Override
-                    public void valueChanged(String key) {
-                        Log.i("RFC", "value changed:" + key);
-                        Calendar calendar = Calendar.getInstance();
-                        calendar.setTimeInMillis(System.currentTimeMillis());
-                        calendar.set(Calendar.HOUR_OF_DAY, siteDataManager.getInt("startHour"));
-                        calendar.set(Calendar.MINUTE, siteDataManager.getInt("startMin"));
-                        calendar.set(Calendar.SECOND, 0);
-                        switch (key){
-                            case "startPatrolTime":
-
-                                long nxtTime =  Interpol.getNextTimePatrol(calendar.getTimeInMillis(), 1000*60* siteDataManager.getLong("intervalTimer").intValue());
-                                if(nxtTime < 0){
-                                    DutyFragment.DutyStatus = "OFF DUTY";
-                                    firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
-                                    resetAlarm(context);
-                                }
-                                break;
-                        }
-                    }
+//                    @Override
+//                    public void valueChanged(String key) {
+//                        Log.i("RFC", "value changed:" + key);
+//                        Calendar calendar = Calendar.getInstance();
+//                        calendar.setTimeInMillis(System.currentTimeMillis());
+//                        calendar.set(Calendar.HOUR_OF_DAY, siteDataManager.getInt("startHour"));
+//                        calendar.set(Calendar.MINUTE, siteDataManager.getInt("startMin"));
+//                        calendar.set(Calendar.SECOND, 0);
+//                        switch (key){
+//                            case "startPatrolTime":
+//
+//                                long nxtTime =  Interpol.getNextTimePatrol(calendar.getTimeInMillis(), 1000*60* siteDataManager.getLong("intervalTimer").intValue());
+//                                if(nxtTime < 0){
+//                                    DutyFragment.DutyStatus = "OFF DUTY";
+//                                    firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
+//                                    resetAlarm(context);
+//                                }
+//                                break;
+//                        }
+//                    }
                 });
             }
 
@@ -253,6 +247,7 @@ public class AlarmReceiver extends BroadcastReceiver{
         context.sendBroadcast(i);
     }
     //timer code
+
 
 
     private long getNextTimePatrol(long pastTime, long interval){

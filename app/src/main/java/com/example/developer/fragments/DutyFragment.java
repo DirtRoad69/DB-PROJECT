@@ -29,6 +29,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.developer.fragments.controlPanelFragments.fragments.ControlPanelFragment;
 import com.example.developer.fullpatrol.AlarmReceiver;
 import com.example.developer.fullpatrol.ControlPanel;
 import com.example.developer.fullpatrol.FirebaseManager;
@@ -274,6 +275,8 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             if(requestCode == MainActivity.REQUEST_CONTROL) {
                 boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
                 if(loggedIn){
+
+                    DutyFragment.this.startFragment(new ControlPanelFragment());
 //                    this.Unlock();
 //                    Intent controlPanelIntent = new Intent(this, ControlPanel.class);
 //                    this.startActivity(controlPanelIntent);

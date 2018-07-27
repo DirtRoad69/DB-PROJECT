@@ -16,6 +16,13 @@
         app:title="Site Selection"
         app:titleTextColor="#FFFFFF"
         />
+    <android.support.v4.view.ViewPager
+        android:layout_below="@id/my_toolbar"
+        android:id="@+id/frame_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
+
+    </android.support.v4.view.ViewPager>
 
 </RelativeLayout>

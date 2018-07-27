@@ -1,14 +1,14 @@
 package com.example.developer.fullpatrol;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.widget.ListView;
-import android.widget.Toast;
 
+import com.example.developer.ServerSide.AppleProjectDB;
+import com.example.developer.ServerSide.FirebaseClientManager;
+import com.example.developer.objects.PatrolPoint;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -21,6 +21,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class FirebaseManager {
     public static final String TAG = "OnFirebase";
@@ -36,6 +36,7 @@ public class FirebaseManager {
     private FirebaseFirestore db;
     private DocumentReference docRef;
     private DocumentReference docRefData;
+    private AppleProjectDB projectDB;
 
 
     private FirebaseManager(){
@@ -46,13 +47,16 @@ public class FirebaseManager {
         this.db = FirebaseFirestore.getInstance();
         this.docRef = db.collection(site).document(docPath);
         this.docRefData = db.collection(site).document(docPath);
+        this.projectDB = MainActivity.getAppleProjectDBServer();
     }
     public void init(){
         this.db = FirebaseFirestore.getInstance();
+
     }
 
     public void addSite(String collectionName, Map object){
-
+        
+        MainActivity.getAppleProjectDBServer().addEvent(FirebaseClientManager.getFirebaseClientManagerInstance().toContentValues(object));
         db.collection(collectionName).add(object).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
             @Override
             public void onSuccess(DocumentReference documentReference) {
@@ -121,7 +125,7 @@ public class FirebaseManager {
         event.put("eventId", eventID);
         event.put("machineId", MainActivity.deviceId);
         event.put("description", description);
-        event.put("timeStamp", FieldValue.serverTimestamp());
+        event.put("timeStampp", FieldValue.serverTimestamp());
         event.put("location", "N-S");
         addSite(collection, event);
 
@@ -225,9 +229,11 @@ public class FirebaseManager {
         event.put("pointId", pointId);
         event.put("machineId", MainActivity.deviceId);
         event.put("description", description);
-        event.put("timeStamp", FieldValue.serverTimestamp());
+        event.put("timeStampp", FieldValue.serverTimestamp());
         event.put("location", "N-S");
         addSite(collection, event);
+
+
 
     }
     public void getData(String col, String docPath, final DataCallback dataCallback){
@@ -289,7 +295,79 @@ public class FirebaseManager {
             }
         });
     }
+    public void getPatrolPointsLocally(String patrolPointsCol, final  DataCallback dataCallback){
+        getPatrolPoints(patrolPointsCol, new DataCallback() {
+            @Override
+            public void onDataUpdated(Map<String, Object> data) {
 
+            }
+
+            @Override
+            public void onDataReceived(Map<String, Object> data) {
+
+                List<PatrolPoint> dada = getPointDataLocally();
+                Log.i(TAG, "getPatrolPointsLocally: "+getPointDataLocally());
+                SiteDataManager.getInstance().put("patrolPoints", getPointDataLocally());
+                dataCallback.onDataReceived(new HashMap());
+            }
+
+            @Override
+            public void onDataReceived(List<Map<String, Object>> data) {
+
+            }
+        });
+
+
+    }
+
+    private List<PatrolPoint> getPointDataLocally(){
+
+        List<PatrolPoint> data = new ArrayList<>();
+        String[] tableCols = projectDB.getColumnNames("PatrolPoints");
+        double longi = 0, lati = 0;
+        Cursor pointCursor = projectDB.getTableData("PatrolPoints");
+        String pointId = "", pointDescription = "";
+        if(pointCursor.moveToNext()) {
+            do {
+
+
+                for (int i = 0; i < tableCols.length; i++) {
+                    String colContent = pointCursor.getString(pointCursor.getColumnIndex(tableCols[i]));
+                    switch (tableCols[i]) {
+
+                        case "pointId":
+                            pointId = colContent;
+                            break;
+                        case "longi":
+                            longi = Double.valueOf(colContent);
+                            break;
+                        case "lati":
+                            lati = Double.valueOf(colContent);
+                            break;
+                        case "pointDescription":
+                            pointDescription = colContent;
+                            break;
+                    }
+                    Log.i("ZAQ", "displayPointData: " +longi+"|"+lati+"|"+pointId+"|"+"|");
+                    if (lati != 0 && longi != 0 && !pointId.isEmpty()) {
+                        Log.i("ZAQ", "added: " +longi+"|"+lati+"|"+pointId+"|"+"|"+pointDescription);
+                        GeoPoint geoPoint = new GeoPoint(lati, longi);
+                        PatrolPoint pointObj = new PatrolPoint(geoPoint, pointDescription, pointId, false);
+                        longi = 0; lati = 0;
+                        pointId = ""; pointDescription = "";
+                        if(data != null){
+                            if (!data.contains(pointObj))
+                                data.add(pointObj);
+                        }
+                    }
+
+
+                }
+            } while (pointCursor.moveToNext());
+        }
+
+        return data;
+    }
     public void getPatrolPoints(String patrolPointsCol, final  DataCallback dataCallback){
         db.collection(patrolPointsCol).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -300,17 +378,20 @@ public class FirebaseManager {
                     List<PatrolPoint> patrolPoints = new ArrayList<>();
 
                     for (DocumentSnapshot doc : task.getResult()) {
-                        PatrolPoint pointObj = new PatrolPoint(doc.getGeoPoint("location"), doc.getString("pointDescription"), doc.getId(), false);
+                        PatrolPoint pointObj = new PatrolPoint(doc.getGeoPoint("geoPoint"), doc.getString("pointDescription"), doc.getId(), false);
 
                         patrolPoints.add(pointObj);
-                        Log.i("RFV", patrolPoints.size()+" -  "+ pointObj.pointDescription);
+                        Log.i("RFV", patrolPoints.size()+"  -  "+ pointObj.pointDescription);
 
 
                     }
 
-                    Log.i("RFV", patrolPoints.size()+" -  "+  task.getResult().size());
 
-                    SiteDataManager.getInstance().put("patrolPoints", patrolPoints);
+                    Log.i("RFV", patrolPoints.size()+"|"+patrolPoints+" -  "+  task.getResult().size());
+
+                    //SiteDataManager.getInstance().put("patrolPoints", patrolPoints);
+
+                    MainActivity.getAppleProjectDBServer().updatePointsValuesList(patrolPoints);
                     dataCallback.onDataReceived(new HashMap());
 
                 }
@@ -358,6 +439,109 @@ public class FirebaseManager {
         });
     }
 
+
+    private Map<String, Object> getLocalSiteData(){
+        String[] tableCols = projectDB.getColumnNames("Sites");
+        //displayPointData();
+        Cursor siteCursor;
+        siteCursor = projectDB.getTableData("Sites");
+        Map<String, Object> data = new HashMap<>();
+        if(siteCursor.moveToNext()){
+            do{
+                for(int i = 0 ; i < tableCols.length ; i++){
+                    String colContent = siteCursor.getString(siteCursor.getColumnIndex(tableCols[i]));
+                    switch (tableCols[i]){
+                        case "siteId":
+                            data.put("siteId", colContent);
+                            break;
+                        case "siteName":
+                            data.put("siteName", colContent);
+                            break;
+                        case "area":
+                            data.put("area", colContent);
+                            break;
+                        case "startEndPoint":
+                            data.put("startEndPoint", colContent);
+                            break;
+                        case "startPatrolTime":
+                            data.put("startPatrolTime", colContent);
+                            break;
+                        case "endPatrolTime":
+                            data.put("endPatrolTime", colContent);
+                            break;
+                        case "minTime":
+                            data.put("minTime", colContent);
+                            break;
+                        case "maxTime":
+                            data.put("maxTime", colContent);
+                            break;
+                        case "intervalTimer":
+                            data.put("intervalTimer", colContent);
+                            break;
+                        case "startDelay":
+                            data.put("startDelay", colContent);
+                            break;
+                    }
+                }
+            }while (siteCursor.moveToNext());
+        }
+
+        Log.i(TAG, "getLocalSiteData: "+data.keySet() +"|"+data);
+        return data;
+    }
+
+    public void getPatrolDataLocally(final DataCallback dataCallback){
+        getPatrolData(new DataCallback() {
+            @Override
+            public void onDataUpdated(Map<String, Object> data) {
+
+            }
+
+            @Override
+            public void onDataReceived(Map<String, Object> data) {
+                //added
+                Log.i("ZAQ@", "onDataReceived: "+data);
+               if(data != null){
+
+
+                   Map<String, Object> localData = getLocalSiteData();
+
+                   Log.i("RFC", "getPatrolDataLocally: data set"+localData.keySet());
+                   Log.i("RFC", "getPatrolDataLocally: "+localData);
+
+                   String startPatrolTime = localData.get("startPatrolTime").toString(), endPatrolTime = localData.get("endPatrolTime").toString();
+                   String[] times = (startPatrolTime + ":" + endPatrolTime).replace(" ", "").split(":");
+                   localData.remove("startPatrolTime"); data.remove("endPatrolTime");
+                   localData.put("startHour", Integer.parseInt(times[0]));
+                   localData.put("startMin", Integer.parseInt(times[1]));
+                   localData.put("endHour", Integer.parseInt(times[2]));
+                   localData.put("endMin", Integer.parseInt(times[3]));
+
+                   if(dataCallback != null){
+                       if(!localData.isEmpty())
+                           SiteDataManager.getInstance().setData(localData);
+                           dataCallback.onDataReceived(localData);
+                   }
+
+                   //added
+
+               }
+            }
+
+            @Override
+            public void onDataReceived(List<Map<String, Object>> data) {
+
+
+
+
+            }
+        });
+
+
+
+
+    }
+
     public void getPatrolData(final DataCallback dataCallback){
 
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -372,10 +556,17 @@ public class FirebaseManager {
                         String[] times = (startPatrolTime + ":" + endPatrolTime).replace(" ", "").split(":");
 
                         Map<String, Object> data = document.getData();
+                        ContentValues values = FirebaseClientManager.getFirebaseClientManagerInstance().toContentValues(data);
+
                         data.put("startHour", Integer.parseInt(times[0]));
                         data.put("startMin", Integer.parseInt(times[1]));
                         data.put("endHour", Integer.parseInt(times[2]));
                         data.put("endMin", Integer.parseInt(times[3]));
+
+
+                       // MainActivity.getAppleProjectDBServer().updateEachRow("Sites", values, MainActivity.siteId);
+                        MainActivity.getAppleProjectDBServer().addValuesToSite(values);
+                        //get data from the local db and push it.
 
                         if(dataCallback != null){
                             dataCallback.onDataReceived(data);
@@ -392,6 +583,7 @@ public class FirebaseManager {
     }
 
     public static FirebaseManager getInstance(){
+
         if(instance == null)
             instance = new FirebaseManager();
 

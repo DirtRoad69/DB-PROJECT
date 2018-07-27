@@ -1,10 +1,8 @@
-package com.example.developer.fullpatrol;
-
-import android.graphics.PointF;
+package com.example.developer.objects;
 
 import com.google.firebase.firestore.GeoPoint;
 
-public class PatrolPoint {
+public class PatrolPointConfig {
 
     public final String pointDescription;
     public final String pointId;
@@ -13,12 +11,12 @@ public class PatrolPoint {
     public boolean isStarting;
 
 
-    public PatrolPoint(GeoPoint pLocation, String pPointDescription, String pPointId, boolean pIsScanned){
+    public PatrolPointConfig(GeoPoint pLocation, String pPointDescription, String pPointId){
 
         this.location = pLocation;
         this.pointDescription = pPointDescription;
         this.pointId = pPointId;
-        this.isScanned = pIsScanned;
+
         isStarting = false;
     }
 

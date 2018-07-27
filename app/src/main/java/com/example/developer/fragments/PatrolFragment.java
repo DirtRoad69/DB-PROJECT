@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
@@ -14,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,7 +21,7 @@ import com.example.developer.fullpatrol.AlarmReceiver;
 import com.example.developer.fullpatrol.FirebaseManager;
 import com.example.developer.fullpatrol.LinkDeviceActivity;
 import com.example.developer.fullpatrol.MainActivity;
-import com.example.developer.fullpatrol.PatrolPoint;
+import com.example.developer.objects.PatrolPoint;
 import com.example.developer.fullpatrol.PatrolPointAdapter;
 import com.example.developer.fullpatrol.R;
 import com.example.developer.fullpatrol.SiteDataManager;
@@ -34,7 +32,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class PatrolFragment extends KioskFragment implements View.OnClickListener {
-    public static final String TAG = "PatrolFragment"
+    public static final String TAG = "ZAQ@"
             ,TITLE = "Patrol Fragment"
             ,CONTENT = "content";
 
@@ -124,17 +122,16 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         }
         listItems = new ArrayList<>();
 
-        int countDown = this.siteDataManager.getLong("countDown").intValue() * MIN_TO_MIL;
-        patrolTimer = this.siteDataManager.getLong("patrolTimer").intValue() * MIN_TO_MIL;
+        int countDown = this.siteDataManager.getLong("startDelay").intValue() * MIN_TO_MIL;
+        patrolTimer = this.siteDataManager.getLong("maxTime").intValue() * MIN_TO_MIL;
 
-        MAX_TIME = this.siteDataManager.getLong("maxPatrolTime") * MIN_TO_MIL;
-        MIN_TIME = this.siteDataManager.getLong("minPatrolTime") * MIN_TO_MIL;
+        MAX_TIME = this.siteDataManager.getLong("maxTime") * MIN_TO_MIL;
+        MIN_TIME = this.siteDataManager.getLong("minTime") * MIN_TO_MIL;
 
         Log.i("asd", "setUpData: "+ MAX_TIME/MIN_TO_MIL);
 
         long durationEndStart = (AlarmReceiver.ReceiveTime + countDown) - System.currentTimeMillis();
         durationPatrol = (AlarmReceiver.ReceiveTime + patrolTimer) - System.currentTimeMillis();
-
         startTimerCountDown(durationEndStart);
         startTimerPatrolDuration(durationPatrol);
         displayPoints(pointCol);
@@ -284,6 +281,9 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     private void verifyPatrolVisually(List<PatrolPoint> scannedPoints, List<PatrolPoint> pointCollection){
 
         List<PatrolPoint> missedPoints = new ArrayList<>();
+
+        Log.i("ZAQ@", pointCollection.size()+" verifyPatrolVisually: "+pointCol);
+        Log.i("ZAQ@", scannedPoints.size()+" countList verifyPatrolVisually: list"+listItems);
 
         //loop over scanned points and check if all
         for(int i=0; i < pointCollection.size();i++){
