@@ -44,6 +44,7 @@ android:background="#eeeeee">
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Learning mode"
+                android:layout_marginLeft="50dp"
                 android:padding="20dp"
                 android:textSize="20sp"
                 android:layout_marginTop="5dp"

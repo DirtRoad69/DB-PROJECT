@@ -8,21 +8,50 @@
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/my_toolbar"
+        style="@style/AppTheme"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        style="@style/AppTheme"
         android:background="@color/colorPrimary"
         android:elevation="4dp"
         app:title="Site Selection"
-        app:titleTextColor="#FFFFFF"
-        />
+        app:titleTextColor="#FFFFFF" />
     <android.support.v4.view.ViewPager
         android:layout_below="@id/my_toolbar"
         android:id="@+id/frame_container"
         android:layout_width="match_parent"
+        android:layout_above="@+id/onComplete"
         android:layout_height="match_parent">
 
 
     </android.support.v4.view.ViewPager>
+
+    <Button
+        android:visibility="gone"
+        android:id="@+id/onComplete"
+        android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+
+        android:elevation="4dp"
+        android:text="FINISH"
+        android:textColor="#FFF"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:layout_alignParentRight="true" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+
+        android:background="@color/colorPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+
+        app:srcCompat="@drawable/ic_my_icon"
+        android:layout_marginTop="55dp"
+        android:layout_marginRight="10dp"
+         />
 
 </RelativeLayout>

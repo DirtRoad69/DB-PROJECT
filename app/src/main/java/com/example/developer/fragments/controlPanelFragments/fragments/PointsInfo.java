@@ -94,7 +94,6 @@ public class PointsInfo extends KioskFragment implements View.OnClickListener, C
 
     }
 
-
     private void getDeviceCurrentLocation(final String pointId) {
         Log.i("ZAQ!", "close: " + pointId);
         if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

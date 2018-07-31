@@ -472,21 +472,42 @@ public class MainActivity extends LockableActivity {
         }
     }
 
+    public void removeAllFrags(String title, int resultCode, Bundle extraData){
+        Fragment nextFragment = ControlPanelFragment.getPointInfoFragment();
+        if(ControlPanelFragment.getPointInfoFragment() != null){
+            ((KioskFragment)nextFragment).onResult(resultCode, extraData);
+            Log.i("ZAQ!", "removeFragmentLearningMode: " + nextFragment);
+        }
+
+        int secondLast = fragmentManager.getBackStackEntryCount() - 2;
+        if(secondLast >= 0){
+            fragmentManager.popBackStack(title, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+    }
 
 
     public static class MyAdapter extends FragmentStatePagerAdapter {
 
-        private final List<Fragment> mFragmnetList = new ArrayList<>();
+        private final List<KioskFragment> mFragmnetList = new ArrayList<>();
         private final List<String> mFragmnetTitleList = new ArrayList<>();
 
         public MyAdapter(FragmentManager fm) {
             super(fm);
         }
 
-        public void addFragment(Fragment fragment, String title){
+        public void addFragment(KioskFragment fragment, String title){
             this.mFragmnetList.add(fragment);
             this.mFragmnetTitleList.add(title);
 
+        }
+
+        public List<KioskFragment> getmFragmnetList() {
+            return mFragmnetList;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            super.destroyItem(container, position, object);
         }
 
         @Override

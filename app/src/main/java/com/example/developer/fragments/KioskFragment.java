@@ -41,6 +41,7 @@ public abstract class KioskFragment extends Fragment {
 
 
 
+
     protected void onFragmentResult(int requestCode, int resultCode, Bundle extraData) {
     }
 

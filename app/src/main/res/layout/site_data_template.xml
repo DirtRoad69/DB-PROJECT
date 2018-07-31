@@ -29,6 +29,7 @@
                     android:layout_height="wrap_content"
                     android:text="Site Name"
                     android:textSize="20sp"
+                    android:layout_marginLeft="55dp"
                     android:padding="10dp"
                     android:textStyle="bold"
                     />
@@ -38,7 +39,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="siteId"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginTop="15dp"
                     android:layout_marginLeft="20dp"
                     android:layout_marginBottom="5dp"
                     />

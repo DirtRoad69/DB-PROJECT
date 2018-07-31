@@ -5,10 +5,14 @@ import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.inputmethodservice.Keyboard;
+import android.inputmethodservice.KeyboardView;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
+import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -17,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.NumberPicker;
+import android.widget.RelativeLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -32,19 +37,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DurationInfo extends KioskFragment implements View.OnClickListener {
+public class DurationInfo extends KioskFragment implements View.OnClickListener,View.OnFocusChangeListener, KeyboardView.OnKeyboardActionListener {
     public static String INTERVAL = "interval";
     View view;
     private EditText edtEndTime, edtStartTime, edtInterval, edtDelay, edtMin, edtMax;
     int hour, minute;
     private String title = "DurationInfo";
     ContentValues value;
+    private KeyboardView keyboardView;
+    private Keyboard keyboard;
+    private boolean isCaps;
+    private RelativeLayout relTemp;
+    private EditText selectedEdt;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.duration_info, container, false);
         Log.i("ZAQ", "onCreateView: DurationInfo");
+        this.relTemp = view.findViewById(R.id.tmp_rel);
+
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                relTemp.setVisibility(View.VISIBLE);
+
+            }
+        }, 700);
+
+
+
 
 
         value = new ContentValues();
@@ -68,11 +91,12 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
         view.findViewById(R.id.btn_collect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                done();
                 setAllTimesToValue();
                 if(value.size() != 0){
                     MainActivity.getAppleProjectDBServer().updateEachRow("Sites", value, MainActivity.siteId);
                     Log.i("ZAQ@", "onClick: " + value.keySet());
-
+                    close();
                     addSiteToCloud();
 
                     Toast.makeText(getContext(), "DATA SAVED", Toast.LENGTH_SHORT).show();
@@ -95,12 +119,38 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
 
 
 
+        //keyBoard
+
+        edtStartTime.requestFocus();
+
+        this.edtStartTime.setOnFocusChangeListener(this);
+        this.edtEndTime.setOnFocusChangeListener(this);
+        this.edtDelay.setOnFocusChangeListener(this);
+        this.edtInterval.setOnFocusChangeListener(this);
+        this.edtMin.setOnFocusChangeListener(this);
+        this.edtMax.setOnFocusChangeListener(this);
+        //view.findViewById(R.id.btn_done).setOnClickListener(this);
+        this.keyboardView = view.findViewById(R.id.kbv_input);
+        this.keyboard = new Keyboard(getContext(), R.xml.qwerty);
+        this.keyboardView.setPreviewEnabled(false);
+        keyboardView.setKeyboard(keyboard);
+        keyboardView.setOnKeyboardActionListener(this);
+
+        isCaps = false;
+
+
 
         view.findViewById(R.id.edt_end_time).setOnClickListener(this);
 
         return view;
     }
 
+    private void close(){
+        DurationInfo.this.removeSelf();
+    }
+    public KioskFragment getObject(){
+        return ControlPanelFragment.getDurationInfoFragment();
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()){
@@ -307,30 +357,30 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
         }
     }
 
-    public void setTime(final EditText editText, final int id){
-
-        TimePickerDialog mTimePicker;
-        mTimePicker = new TimePickerDialog(getContext(), new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-
-                editText.setText(selectedHour + ":" + selectedMinute);
-
-                switch (id){
-                    case 0:
-                        value.put("startPatrolTime", selectedHour + ":" + selectedMinute);
-                        break;
-                    case 1:
-                        value.put("endPatrolTime", selectedHour + ":" + selectedMinute);
-                        break;
-
-                }
-
-            }
-        }, hour, minute, true);//Yes 24 hour time
-        mTimePicker.setTitle("Start Time");
-        mTimePicker.show();
-    }
+//    public void setTime(final EditText editText, final int id){
+//
+//        TimePickerDialog mTimePicker;
+//        mTimePicker = new TimePickerDialog(getContext(), new TimePickerDialog.OnTimeSetListener() {
+//            @Override
+//            public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
+//
+//                editText.setText(selectedHour + ":" + selectedMinute);
+//
+//                switch (id){
+//                    case 0:
+//                        value.put("startPatrolTime", selectedHour + ":" + selectedMinute);
+//                        break;
+//                    case 1:
+//                        value.put("endPatrolTime", selectedHour + ":" + selectedMinute);
+//                        break;
+//
+//                }
+//
+//            }
+//        }, hour, minute, true);//Yes 24 hour time
+//        mTimePicker.setTitle("Start Time");
+//        mTimePicker.show();
+//    }
 
     @Override
     protected void onFragmentResult(int requestCode, int resultCode, Bundle extraData) {
@@ -341,15 +391,145 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
         if(resultCode == Activity.RESULT_OK){
 
         }
+
         ControlPanelFragment.setViewPager(0);
+
 //        edtMin.setText("15");
 //        edtInterval.setText("50");
 //        edtMax.setText("20");
 
     }
 
+    private void done () {
+        relTemp.setVisibility(View.GONE);
+        //checkInputAndSignIn();
+    }
+
     @Override
     public String getTitle() {
         return title;
+    }
+
+    @Override
+    public void onPress(int primaryCode) {
+
+    }
+
+    @Override
+    public void onRelease(int primaryCode) {
+
+    }
+
+    @Override
+    public void onKey(int primaryCode, int[] keyCodes) {
+        if (selectedEdt != null) {
+            switch (primaryCode) {
+                case Keyboard.KEYCODE_DELETE:
+                    String text = selectedEdt.getText().toString();
+                    if(!text.isEmpty()){
+                        int pos = selectedEdt.getSelectionStart(), end = selectedEdt.getSelectionEnd();
+                        if (pos > 0){
+                            String textNew = selectedEdt.getText().delete(pos - 1, end).toString();
+                            selectedEdt.setText(textNew);
+                            selectedEdt.setSelection(pos - 1);
+                        }else{
+                            String textNew = selectedEdt.getText().delete(0, end).toString();
+                            selectedEdt.setText(textNew);
+                            selectedEdt.setSelection(0);
+                        }
+                    }
+                    break;
+                case Keyboard.KEYCODE_SHIFT:
+                    isCaps = !isCaps;
+                    keyboard.setShifted(isCaps);
+                    keyboardView.invalidateAllKeys();
+                    break;
+                case Keyboard.KEYCODE_DONE:
+                    this.done();
+                    break;
+                default:
+                    char code = (char) primaryCode;
+                    if (Character.isLetter(code) && isCaps) {
+                        code = Character.toUpperCase(code);
+                    }
+
+                    String textToInsert = String.valueOf(code);
+                    int start = Math.max(selectedEdt.getSelectionStart(), 0);
+                    int end = Math.max(selectedEdt.getSelectionEnd(), 0);
+                    selectedEdt.getText().replace(Math.min(start, end), Math.max(start, end),
+                            textToInsert, 0, textToInsert.length());
+            }
+
+
+        }
+    }
+
+    @Override
+    public void onText(CharSequence text) {
+
+    }
+
+    @Override
+    public void swipeLeft() {
+
+    }
+
+    @Override
+    public void swipeRight() {
+
+    }
+
+    @Override
+    public void swipeDown() {
+
+    }
+
+    @Override
+    public void swipeUp() {
+
+    }
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+
+
+        switch (v.getId()){
+            case R.id.edt_start_time:
+                selectedEdt = edtStartTime;
+                break;
+
+            case R.id.edt_end_time:
+                selectedEdt = edtEndTime;
+                break;
+
+            case R.id.edt_min_time:
+                selectedEdt = edtMin;
+                break;
+
+            case R.id.edt_max_time:
+                selectedEdt = edtMax;
+                break;
+
+
+            case R.id.edt_interval_time:
+                selectedEdt = edtInterval;
+                break;
+
+            case R.id.edt_end_count_time:
+                selectedEdt = edtDelay;
+                break;
+
+
+
+        }
+
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        this.removeSelf();
     }
 }

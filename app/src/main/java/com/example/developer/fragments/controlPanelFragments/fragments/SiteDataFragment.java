@@ -71,13 +71,15 @@ public class SiteDataFragment extends KioskFragment implements View.OnClickListe
         btn_load_data.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getContext(), "Data Loaded", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "FINISHED", Toast.LENGTH_SHORT).show();
                 Log.i("ZAQ!", "close: " + "4542");
                 displaySiteData();
             }
         });
         return view;
     }
+
+
     private void displayPoints(List<PatrolPointConfig> listItems){
         if(listItems == null)
             return;
@@ -134,6 +136,10 @@ public class SiteDataFragment extends KioskFragment implements View.OnClickListe
         }
         displayPoints(pointConfigsList);
 
+    }
+
+    public KioskFragment getObject(){
+        return ControlPanelFragment.getSiteDataFragment();
     }
     private void displaySiteData(){
         String[] tableCols = projectDB.getColumnNames("Sites");

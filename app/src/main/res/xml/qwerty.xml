@@ -42,6 +42,7 @@
     </Row>
     <Row>
         <Key android:codes="-1" android:keyLabel="▲" android:keyEdgeFlags="left"/>
+        <Key android:codes="58" android:keyLabel=":"/>
         <Key android:codes="122" android:keyLabel="z"/>
         <Key android:codes="120" android:keyLabel="x"/>
         <Key android:codes="99" android:keyLabel="c"/>
