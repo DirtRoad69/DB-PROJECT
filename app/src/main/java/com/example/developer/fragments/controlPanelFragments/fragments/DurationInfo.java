@@ -26,8 +26,10 @@ import com.example.developer.fragments.KioskFragment;
 import com.example.developer.fullpatrol.MainActivity;
 import com.example.developer.fullpatrol.R;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DurationInfo extends KioskFragment implements View.OnClickListener {
@@ -66,6 +68,7 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
         view.findViewById(R.id.btn_collect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                setAllTimesToValue();
                 if(value.size() != 0){
                     MainActivity.getAppleProjectDBServer().updateEachRow("Sites", value, MainActivity.siteId);
                     Log.i("ZAQ@", "onClick: " + value.keySet());
@@ -102,40 +105,55 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.edt_start_time:
-            case R.id.ttv_start_time :
-                setTime(edtStartTime, 0);
+           // case R.id.ttv_start_time :
+                //setTime(edtStartTime, 0);
+                getTime(edtStartTime, 0);
                 break;
 
             case R.id.edt_end_time:
-            case R.id.ttv_end_time:
-                setTime(edtEndTime, 1);
+            //case R.id.ttv_end_time:
+                //setTime(edtEndTime, 1);
+                getTime(edtEndTime, 1);
                 break;
 
 
 
             case R.id.edt_min_time:
-            case R.id.ttv_min_time:
-                setMinutes(edtMin, 2);
+            //case R.id.ttv_min_time:
+               // setMinutes(edtMin, 2);
+                getTime(edtMin, 2);
                 break;
 
             case R.id.edt_max_time:
-            case R.id.ttv_max_time:
+            //case R.id.ttv_max_time:
 
-                setMinutes(edtMax, 3);
+                //setMinutes(edtMax, 3);
+                getTime(edtMax, 3);
                 break;
 
 
             case R.id.edt_interval_time:
-            case R.id.ttv_interval_time:
-                setMinutes(edtInterval, 4);
+           // case R.id.ttv_interval_time:
+               // setMinutes(edtInterval, 4);
+                getTime(edtInterval, 4);
                 break;
 
             case R.id.edt_end_count_time:
-            case R.id.ttv_end_count_time:
-                setMinutes(edtDelay, 5);
+          // case R.id.ttv_end_count_time:
+                //setMinutes(edtDelay, 5);
+                getTime(edtDelay, 5);
                 break;
 
 
+
+        }
+    }
+
+    private void setAllTimesToValue(){
+        List<EditText> editTextList = getAllEditText();
+        for(int i = 0; i < editTextList.size() ; i++){
+
+            getTime(editTextList.get(i), i);
 
         }
     }
@@ -168,8 +186,18 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
         }
         Log.i("ZAQ@", "addSiteToCloud: "+keys+" | "+ value);
         FirebaseClientManager.getFirebaseClientManagerInstance().pushToCloud(siteDataObject);
-    }
 
+    }
+    private List<EditText> getAllEditText(){
+        List<EditText> editTextList = new ArrayList<>();
+        editTextList.add(edtStartTime);
+        editTextList.add(edtEndTime);
+        editTextList.add(edtMin);
+        editTextList.add(edtMax);
+        editTextList.add(edtInterval);
+        editTextList.add(edtDelay);
+        return editTextList;
+    }
     private void displaySiteTimes(){
         String[] tableCols = MainActivity.getAppleProjectDBServer().getColumnNames("Sites");
         Cursor siteCursor = MainActivity.getAppleProjectDBServer().getTableData("Sites");
@@ -178,6 +206,7 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
                 for(int i = 0 ; i < tableCols.length ; i++){
                     String colContent = siteCursor.getString(siteCursor.getColumnIndex(tableCols[i]));
                     switch (tableCols[i]){
+
 
                         case "startPatrolTime":
                             edtStartTime.setText(colContent);
@@ -244,6 +273,38 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener 
                 .show();
 
 
+    }
+
+    private void getTime(EditText editText, int id){
+
+        switch (id){
+            case 0:
+                if(!editText.getText().toString().isEmpty())
+                    value.put("startPatrolTime",  editText.getText().toString());
+                break;
+            case 1:
+                if(!editText.getText().toString().isEmpty())
+                    value.put("endPatrolTime", editText.getText().toString());
+                break;
+            case 2:
+                if(!editText.getText().toString().isEmpty())
+                    value.put("minTime", editText.getText().toString());
+
+                break;
+            case 3:
+                if(!editText.getText().toString().isEmpty())
+                    value.put("maxTime", editText.getText().toString());
+                break;
+            case 4:
+                if(!editText.getText().toString().isEmpty())
+                    value.put("intervalTimer", editText.getText().toString());
+                break;
+            case 5:
+                if(!editText.getText().toString().isEmpty())
+                    value.put("startDelay", editText.getText().toString());
+                break;
+
+        }
     }
 
     public void setTime(final EditText editText, final int id){
