@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
@@ -13,12 +14,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Chronometer;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.developer.fullpatrol.AlarmReceiver;
 import com.example.developer.fullpatrol.FirebaseManager;
+import com.example.developer.fullpatrol.Interpol;
 import com.example.developer.fullpatrol.LinkDeviceActivity;
 import com.example.developer.fullpatrol.MainActivity;
 import com.example.developer.objects.PatrolPoint;
@@ -28,6 +31,7 @@ import com.example.developer.fullpatrol.SiteDataManager;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -66,6 +70,13 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     private long MAX_TIME;
     long durationPatrol;
     int patrolTimer;
+
+    //added
+
+    private Chronometer patrolDurationConfig;
+    private boolean isChrStarted;
+    private long durationPatrolChr;
+
     public PatrolFragment(){
         this.firebaseManager = FirebaseManager.getInstance();
         this.siteDataManager = SiteDataManager.getInstance();
@@ -93,8 +104,12 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         View parentView = inflater.inflate(R.layout.activity_display, container, false);
 
         timedOut = parentView.findViewById(R.id.ttv_count_down);
-        ttvDuraton = parentView.findViewById(R.id.ttv_patrol_duration);
+        //ttvDuraton = parentView.findViewById(R.id.ttv_patrol_duration);
         ttvMsg = parentView.findViewById(R.id.view_content);
+
+        //added
+        patrolDurationConfig = parentView.findViewById(R.id.chr_patrol_duration_temp);
+        isChrStarted = false;
 
 
         listview = parentView.findViewById(R.id.listview);
@@ -123,20 +138,75 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         listItems = new ArrayList<>();
 
         int countDown = this.siteDataManager.getLong("startDelay").intValue() * MIN_TO_MIL;
+        int newCountDown = 2*MIN_TO_MIL;
         patrolTimer = this.siteDataManager.getLong("maxTime").intValue() * MIN_TO_MIL;
 
         MAX_TIME = this.siteDataManager.getLong("maxTime") * MIN_TO_MIL;
         MIN_TIME = this.siteDataManager.getLong("minTime") * MIN_TO_MIL;
 
-        Log.i("asd", "setUpData: "+ MAX_TIME/MIN_TO_MIL);
 
-        long durationEndStart = (AlarmReceiver.ReceiveTime + countDown) - System.currentTimeMillis();
+
+        long durationEndStart = (AlarmReceiver.ReceiveTime + newCountDown) - System.currentTimeMillis();
         durationPatrol = (AlarmReceiver.ReceiveTime + patrolTimer) - System.currentTimeMillis();
-        startTimerCountDown(durationEndStart);
-        startTimerPatrolDuration(durationPatrol);
+        durationPatrol = (AlarmReceiver.ReceiveTime + patrolTimer) - System.currentTimeMillis();
+        durationPatrolChr = (AlarmReceiver.ReceiveTime) - System.currentTimeMillis();
+
+        startTimerCountDown(durationEndStart+1000);
+        patrolDurationChronometer();
+        startTimerPatrolDuration(getTimeEndPatrol());
+
         displayPoints(pointCol);
 
     }
+
+    private long getTimeEndPatrol(){
+
+
+        int startHour, startMin, intervalTimer;
+        startHour = siteDataManager.getInt("startHour");
+        startMin = siteDataManager.getInt("startMin");
+        intervalTimer = siteDataManager.getLong("intervalTimer").intValue();
+        // Set the alarm to start at 8:30 a.m.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.HOUR_OF_DAY, startHour);
+        calendar.set(Calendar.MINUTE, startMin);
+        calendar.set(Calendar.SECOND, 0);
+        long nxtTime =  Interpol.getNextTimePatrol(calendar.getTimeInMillis(), 1000 * 60 * intervalTimer);
+        long diff = nxtTime - System.currentTimeMillis() - 4000;
+        //long duration = (long) ((diff) / 60000.0);
+        Log.i("QAZ", "getTimeEndPatrol: "+diff);
+
+
+        return diff;
+
+    }
+    private void chronometerInterrupt(String msg){
+
+        if(!patrolDurationConfig.getText().toString().isEmpty()){
+            patrolDurationConfig.stop();
+            isChrStarted = false;
+            Log.i("QAZ", "onDestroy: WAS CALLED" );
+        }
+
+        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+
+    }
+    private void patrolDurationChronometer(){
+
+        if(!isChrStarted){
+            patrolDurationConfig.setBase(SystemClock.elapsedRealtime() + durationPatrolChr);
+            patrolDurationConfig.start(); // start a chronometer
+
+            Log.i(TAG, "patrolDurationChronometer: " + patrolDurationConfig.getText());
+            Toast.makeText(getContext(), patrolDurationConfig.getText(), Toast.LENGTH_SHORT).show();
+            isChrStarted = true;
+        }
+
+
+    }
+
+
 
     private void startTimerPatrolDuration(long duration) {
         timePatrolDuration = new CountDownTimer(duration, 1000) {
@@ -145,15 +215,18 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 int minutes = (int) (millisUntilFinished / 1000) / 60;
                 int seconds = (int) (millisUntilFinished / 1000) % 60;
 
-                String timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
-                timePatrolEnded = millisUntilFinished;
+               // String timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+               // timePatrolEnded = millisUntilFinished;
 
-                ttvDuraton.setText(timeLeftFormatted);
+               // ttvDuraton.setText(timeLeftFormatted);
             }
 
             @Override
             public void onFinish() {
+                if(timeCountDown != null)
+                    timeCountDown.cancel();
                 verityPatrol(listItems, pointCol, true);
+
             }
         }.start();
     }
@@ -178,12 +251,24 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 crvTimeout.setVisibility(View.GONE);
                 firebaseManager.sendEventType(MainActivity.eventsCollection, "No Points Visited", 22, "");
                 timePatrolDuration.cancel();
+                if(patrolDurationConfig != null)
+                    patrolDurationConfig.stop();
                 close();
                 Toast.makeText(getActivity(), "Finished!", Toast.LENGTH_LONG).show();
             }
         }.start();
 
 
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("WSX", "onDestroy: called");
+        if(timeCountDown !=null)
+            timeCountDown.cancel();
+        if(timePatrolDuration !=null)
+            timePatrolDuration.cancel();
     }
 
     @Override
@@ -273,7 +358,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
             MainActivity.wakeActive = false;
             ((MainActivity)getActivity()).setScreenSleep();
         }catch (Exception e){
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         PatrolFragment.this.removeSelf();
     }
