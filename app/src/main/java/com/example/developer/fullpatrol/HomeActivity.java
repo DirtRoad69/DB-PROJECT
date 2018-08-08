@@ -3,6 +3,9 @@ package com.example.developer.fullpatrol;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,6 +39,11 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
     private FirebaseManager firebaseManager;
     private Thread looper;
 
+    static  final  int RESULT_ENABLE = 1;
+    DevicePolicyManager devicePolicyManager;
+    ComponentName componentName;
+    boolean active;
+
 
 
     @Override
@@ -46,7 +54,9 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
         this.firebaseManager.init();
 
 
-
+        devicePolicyManager = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
+        componentName = new ComponentName(HomeActivity.this, Controller.class);
+        active = devicePolicyManager.isAdminActive(componentName);
 
         this.sharedPreferences = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE);
         String deviceID, siteID;
@@ -85,7 +95,9 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
         this.sharedPreferences.edit().putBoolean(SHARE_KIOSK_ENABLED, true).apply();
 
         dispatcherIntent = new Intent(this, DispatcherService.class);
+        turnScreenOff();
         this.startService(dispatcherIntent);
+
     }
 
     private void updateActiveStatus(boolean isActive) {
@@ -141,6 +153,12 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
         if(isChecked){
             Log.i("RFC", "Enter C");
 
+
+
+
+
+
+
             if(getSITE() == null){
                 Log.i("RFC", "Enter C2");
 
@@ -148,13 +166,29 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
                 spnEnable.setChecked(false);
             }else{
                 this.enableKioskMode();
+
                 ttvMessage.setVisibility(View.VISIBLE);
                 Log.i("RFC", "Enter C3");
 
             }
+
+
         }else{
             this.disableKioskMode();
             ttvMessage.setVisibility(View.GONE);
+        }
+    }
+
+    private void turnScreenOff() {
+
+        if(active){
+           // devicePolicyManager.removeActiveAdmin(componentName);
+            devicePolicyManager.lockNow();
+        }else{
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN,componentName);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,"You Should Enable the app!");
+            startActivityForResult(intent,RESULT_ENABLE);
         }
     }
 
@@ -208,6 +242,9 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
                    showProgress("Unlink", "Unlinking Device [ " + uid + " ] From Site [ " + getSiteName() + " ]");
                    unlink(uid);
                }
+           }else if (requestCode == RESULT_ENABLE){
+               if(active)
+                   devicePolicyManager.lockNow();
            }
        }
 

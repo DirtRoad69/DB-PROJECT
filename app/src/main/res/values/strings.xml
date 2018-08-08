@@ -6,5 +6,6 @@
     <string name="negative_popup_title_default">Awww. . .Snap!</string>
     <string name="positive_popup_button_default">OK</string>
     <string name="negative_popup_button_default">TRY AGAIN</string>
+    <string name="app_description">You should allow My Application to lock the screen</string>
 
 </resources>
