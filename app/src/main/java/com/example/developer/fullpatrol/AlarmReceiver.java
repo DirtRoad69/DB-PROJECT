@@ -26,6 +26,7 @@ public class AlarmReceiver extends BroadcastReceiver{
 
     Interpol interpol;
     public static long ReceiveTime = 0;
+    private boolean daySkipped = false;
 
 
     @Override
@@ -73,41 +74,42 @@ public class AlarmReceiver extends BroadcastReceiver{
                                 @Override
                                 public void onDataReceived(Map<String, Object> empty) {
 
+                                    try{
+
+
+                                        Calendar startTime = Calendar.getInstance();
+                                        startTime.setTimeInMillis(System.currentTimeMillis());
+                                        startTime.set(Calendar.HOUR_OF_DAY, siteDataManager.getInt("startHour"));
+                                        startTime.set(Calendar.MINUTE, siteDataManager.getInt("startMin"));
+                                        startTime.set(Calendar.SECOND, 0);
+
+                                        int endHour =  siteDataManager.getInt("endHour") , endMin =siteDataManager.getInt("endMin");
+                                        Calendar endTime = Calendar.getInstance();
+                                        endTime.setTimeInMillis(System.currentTimeMillis());
+                                        endTime.set(endTime.HOUR_OF_DAY, endHour);
+                                        endTime.set(endTime.MINUTE, endMin);
+                                        endTime.set(endTime.SECOND, 0);
 
 
 
-                                    Calendar startTime = Calendar.getInstance();
-                                    startTime.setTimeInMillis(System.currentTimeMillis());
-                                    startTime.set(Calendar.HOUR_OF_DAY, siteDataManager.getInt("startHour"));
-                                    startTime.set(Calendar.MINUTE, siteDataManager.getInt("startMin"));
-                                    startTime.set(Calendar.SECOND, 0);
 
-                                    int endHour =  siteDataManager.getInt("endHour") , endMin =siteDataManager.getInt("endMin");
-                                    Calendar endTime = Calendar.getInstance();
-                                    endTime.setTimeInMillis(System.currentTimeMillis());
-                                    endTime.set(endTime.HOUR_OF_DAY, endHour);
-                                    endTime.set(endTime.MINUTE, endMin);
-                                    endTime.set(endTime.SECOND, 0);
+                                        Calendar nowTime = Calendar.getInstance();
 
 
 
-
-                                    Calendar nowTime = Calendar.getInstance();
-
-
-
-                                    List<PatrolPoint> points = (List<PatrolPoint>)siteDataManager.get("patrolPoints");
-                                    String startPoint = siteDataManager.get("startEndPoint").toString();
-                                    for(int pos = 0 ; pos < points.size(); pos++){
-                                        if(points.get(pos).pointId.contains(startPoint)){
-                                            points.get(pos).isStarting = true;
-                                            break;
+                                        List<PatrolPoint> points = (List<PatrolPoint>)siteDataManager.get("patrolPoints");
+                                        String startPoint = siteDataManager.get("startEndPoint").toString();
+                                        for(int pos = 0 ; pos < points.size(); pos++){
+                                            if(points.get(pos).pointId.contains(startPoint)){
+                                                points.get(pos).isStarting = true;
+                                                break;
+                                            }
                                         }
-                                    }
 
-                                    detectDutyStatus(startTime, nowTime, endTime, firebaseManager, context, siteDataManager);
-                                    interpol.setStarted(false);
-                                    interpol.setExecuting(false);
+                                        detectDutyStatus(startTime, nowTime, endTime, firebaseManager, context, siteDataManager);
+                                        interpol.setStarted(false);
+                                        interpol.setExecuting(false);
+                                    }catch(Exception e){}
                                 }
 
                                 @Override
@@ -149,6 +151,8 @@ public class AlarmReceiver extends BroadcastReceiver{
 
         }catch (Exception exception){
             Log.i("WSX", "onReceive: ERRo" + exception.getMessage());
+
+            //restart the app
         }
 
 
@@ -203,7 +207,7 @@ public class AlarmReceiver extends BroadcastReceiver{
                 DutyFragment.DutyStatus = "ON DUTY";
                 interpol.setNextTime(nxtTime);
                 updateTime(context, (nxtTime - System.currentTimeMillis()) / 60000.0);
-                Log.i("RFC", "Execute");
+                Log.i("WSX", "Execute "+(nxtTime - System.currentTimeMillis()) / 60000.0);
                 //unlockMain(context);
                 if(interpol.started())
                     return;
@@ -225,6 +229,7 @@ public class AlarmReceiver extends BroadcastReceiver{
             DutyFragment.DutyStatus = "OFF DUTY";
             firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
             resetAlarm(context);
+            startDate.add(startDate.DATE, 1);
             interpol.setNextTime(startDate.getTimeInMillis());
             Log.i("RFC", "Ignore 2");
             long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
@@ -238,7 +243,9 @@ public class AlarmReceiver extends BroadcastReceiver{
         //check if on different day
         if(isPM(startDate.get(startDate.HOUR_OF_DAY)) && !isPM(endDate.get(endDate.HOUR_OF_DAY))){
             //skip day
+
             endDate.add(endDate.DATE, 1);
+
             Log.i("WSX", "compareDates: Day Skipped");
             compareDates(startDate, nowDate, endDate, firebaseManager, context, siteDataManager);
 
@@ -247,6 +254,17 @@ public class AlarmReceiver extends BroadcastReceiver{
             compareDates(startDate, nowDate, endDate, firebaseManager, context, siteDataManager);
         }
 
+    }
+    private boolean checkDay(Calendar endDate, Calendar nowDate){
+
+        if(endDate.getTimeInMillis() <= nowDate.getTimeInMillis()){
+            Log.i("WSX",endDate.getTime()+ " endDate.getTimeInMillis()"+endDate.getTimeInMillis());
+            Log.i("WSX",nowDate.getTime()+ " nowDate.getTimeInMillis()"+nowDate.getTimeInMillis());
+            return true;
+
+        }else{
+            return false;
+        }
     }
 
 

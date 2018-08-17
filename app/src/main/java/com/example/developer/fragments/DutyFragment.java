@@ -58,7 +58,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     private SiteDataManager siteDataManager;
 
 
-    private BroadcastReceiver updateUIReceiver;
+    public static BroadcastReceiver updateUIReceiver;
 
 
     private TextView txtCountDown, txtDutyStatus;
@@ -83,6 +83,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         filter.addAction(AlarmReceiver.ACTION_REST_ALARM);
         filter.addAction(AlarmReceiver.ACTION_REST_COUNTER);
         filter.addAction(AlarmReceiver.ACTION_START_PATROL);
+        filter.addAction(AlarmReceiver.ACTION_END_TIME);
 
         updateUIReceiver = new BroadcastReceiver() {
             @Override
@@ -97,11 +98,25 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
                             Log.i("RFC", "Received");
                             break;
                         case AlarmReceiver.ACTION_REST_COUNTER:
-                            startTimer(intent.getDoubleExtra(EXTRA_DURATION, 0));
+                            Log.i("WSX", "onReceive: ACTION_REST_COUNTER "+Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
+                            startTimer(Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
                             break;
                         case AlarmReceiver.ACTION_START_PATROL:
                             DutyFragment.this.startFragment(new PatrolFragment());
                             break;
+                        case AlarmReceiver.ACTION_END_TIME:
+                            Log.i("WSX", "onReceive: REFRESH");
+                            if(DutyStatus.equals("OFF DUTY")){
+                                Log.i("WSX", "onReceive: REFRESH removeSelf");
+
+                                ((MainActivity) getActivity()).resetIfOffDuty();
+
+
+
+                            }
+
+                            break;
+
                     }
 
                 }
@@ -138,34 +153,52 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         int startHour, startMin, intervalTimer;
         startHour = siteDataManager.getInt("startHour");
         startMin = siteDataManager.getInt("startMin");
-        intervalTimer = siteDataManager.getLong("intervalTimer").intValue();
-
 
 
         // Set the alarm to start at 8:30 a.m.
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, startHour);
-        calendar.set(Calendar.MINUTE, startMin);
-        calendar.set(Calendar.SECOND, 0);
-
-
-        offDuty(DutyStatus.equals("ON DUTY"), calendar);
-
+        Log.i("WSX", "setupTimer: set starttime");
+        Calendar startDate = Calendar.getInstance();
+        startDate.setTime(Calendar.getInstance().getTime());
+        startDate.setTimeInMillis(System.currentTimeMillis());
+        startDate.set(Calendar.HOUR_OF_DAY, startHour);
+        startDate.set(Calendar.MINUTE, startMin);
+        startDate.set(Calendar.SECOND, 0);
 
 
 
-        long nxtTime =  Interpol.getNextTimePatrol(calendar.getTimeInMillis(), 1000 * 60 * intervalTimer);
-        if(nxtTime < 0){
-            long  remainingTime = calendar.getTimeInMillis() - System.currentTimeMillis();
-            Interpol.getInstance().setNextTime(calendar.getTimeInMillis());
-            startTimer(remainingTime / 60000.0);
-            DutyStatus = "OFF DUTY";
-        }else{
-            Interpol.getInstance().setNextTime(nxtTime);
-            long diff = nxtTime - System.currentTimeMillis();
-            startTimer((diff) / 60000.0);
-        }
+        //added
+
+        int endHour =  siteDataManager.getInt("endHour") , endMin =siteDataManager.getInt("endMin");
+        Calendar endTime = Calendar.getInstance();
+        endTime.setTimeInMillis(System.currentTimeMillis());
+        endTime.set(endTime.HOUR_OF_DAY, endHour);
+        endTime.set(endTime.MINUTE, endMin);
+        endTime.set(endTime.SECOND, 0);
+
+
+
+
+
+        Calendar nowTime = Calendar.getInstance();
+
+
+        Log.i("WSX", "setupTimer: 1");
+
+
+        detectDutyStatus(startDate, nowTime, endTime, firebaseManager, siteDataManager);
+        Log.i("WSX", "setupTimer: 2 ");
+
+//        long nxtTime =  Interpol.getNextTimePatrol(startDate.getTimeInMillis(), 1000 * 60 * intervalTimer);
+//        if(nxtTime < 0){
+//            long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+//            Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+//            startTimer(remainingTime / 60000.0);
+//            DutyStatus = "OFF DUTY";
+//        }else{
+//            Interpol.getInstance().setNextTime(nxtTime);
+//            long diff = nxtTime - System.currentTimeMillis();
+//            startTimer((diff) / 60000.0);
+//        }
     }
 
     @Override
@@ -184,8 +217,93 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     }
 
     private void offDuty(Boolean isOnDuty, Calendar c){
-        if(!isOnDuty)
+        if(!isOnDuty){
+            Log.i("WSX", "offDuty: ");
             c.add(Calendar.DATE, 1);
+        }
+
+    }
+
+    public boolean isPM(int hour){
+        boolean isPM = false;
+        if(hour >= 12){
+            isPM = true;
+        }
+        return isPM;
+    }
+
+    public void compareDates(Calendar startDate,Calendar nowDate, Calendar endDate, FirebaseManager firebaseManager, SiteDataManager siteDataManager){
+
+        if((endDate.getTimeInMillis() >= nowDate.getTimeInMillis())
+                && (nowDate.getTimeInMillis() >= startDate.getTimeInMillis())){
+
+
+
+
+
+            long nxtTime =  Interpol.getNextTimePatrol(startDate.getTimeInMillis(), 1000*60* siteDataManager.getLong("intervalTimer").intValue());
+            Date resultdate = new Date(nxtTime);
+            Log.i("RFC", resultdate.toString());
+            if(nxtTime < 0){
+                //MainActivity.dutyStatus = "OFF DUTY";
+
+                long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+                startDate.add(startDate.DATE, 1);
+                startTimer(remainingTime / 60000.0);
+                DutyStatus = "OFF DUTY";
+
+            }else{
+                if(DutyFragment.DutyStatus.equals("OFF DUTY")){
+                    firebaseManager.sendEventType("events",  "ON DUTY" , 2, "site");
+                }
+                DutyFragment.DutyStatus = "ON DUTY";
+                Interpol.getInstance().setNextTime(nxtTime);
+                long diff = nxtTime - System.currentTimeMillis();
+                startTimer((diff) / 60000.0);
+            }
+
+
+            Log.i("WSX", "compareDates: ON DUTY DUTY FRAG");
+            Log.i("WSX", "compareDates: UPDATE UI DUTY FRAG");
+            Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nrStartTime "+ startDate.getTime() );
+        }else{
+            startDate.add(startDate.DATE, 1);
+
+            Log.i("WSX", "compareDates: OFF DUTY");
+            Log.i("WSX", "compareDates: OFF DUTY SENT. . .DUTY FRAG");
+            Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nStartTime "+ startDate.getTime() );
+
+
+            DutyFragment.DutyStatus = "OFF DUTY";
+            firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
+            long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+
+            Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+            startTimer(remainingTime / 60000.0);
+            DutyStatus = "OFF DUTY";
+
+            Log.i("WSX", "OFF DUTY on DUTY FRAGMENT DUTY FRAG");
+
+
+        }
+
+    }
+    public void detectDutyStatus(Calendar startDate,Calendar nowDate, Calendar endDate, FirebaseManager firebaseManager,SiteDataManager siteDataManager){
+        //check if on different day
+        if(isPM(startDate.get(startDate.HOUR_OF_DAY)) && !isPM(endDate.get(endDate.HOUR_OF_DAY))){
+            //skip day
+
+            endDate.add(endDate.DATE, 1);
+
+            Log.i("WSX", "compareDates: Day Skipped DUTY FRAG");
+            compareDates(startDate, nowDate, endDate, firebaseManager, siteDataManager);
+
+        }else{
+            Log.i("WSX", "compareDates: Day not skipped we are on the current day. . .DUTY FRAG");
+            compareDates(startDate, nowDate, endDate, firebaseManager, siteDataManager);
+        }
+
     }
 
 
@@ -271,24 +389,27 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
 
     @Override
     protected void onFragmentResult(int requestCode, int resultCode, Bundle extraData) {
-        if(resultCode == Activity.RESULT_OK){
-            if(requestCode == MainActivity.REQUEST_CONTROL) {
-                boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
-                if(loggedIn){
+        //added try catch
+        try{
+            if(resultCode == Activity.RESULT_OK){
+                if(requestCode == MainActivity.REQUEST_CONTROL) {
+                    boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
+                    if(loggedIn){
 
-                    DutyFragment.this.startFragment(new ControlPanelFragment());
+                        DutyFragment.this.startFragment(new ControlPanelFragment());
 //                    this.Unlock();
 //                    Intent controlPanelIntent = new Intent(this, ControlPanel.class);
 //                    this.startActivity(controlPanelIntent);
-                }
-            } else if (requestCode == REQUEST_EXIT) {
-                boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
-                if(loggedIn){
-                    mCountDownTimer.cancel();
-                    ((MainActivity)this.getActivity()).exitKiosk();
+                    }
+                } else if (requestCode == REQUEST_EXIT) {
+                    boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
+                    if(loggedIn){
+                        mCountDownTimer.cancel();
+                        ((MainActivity)this.getActivity()).exitKiosk();
+                    }
                 }
             }
-        }
+        }catch (Exception e){}
     }
 
 

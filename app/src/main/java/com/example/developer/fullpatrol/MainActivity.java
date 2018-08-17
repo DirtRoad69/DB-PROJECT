@@ -1,5 +1,6 @@
 package com.example.developer.fullpatrol;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -7,7 +8,9 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -88,13 +91,24 @@ public class MainActivity extends LockableActivity {
 
     ApplicationMiddleware middleware;
     FirebaseClientManager firebaseClientManager;
+    private static final int PERMISSION_REQUEST_READ_PHONE_STATE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Log.i("ZAQ@", "onCreate: cresr");
         this.Lock();
         Log.i("ZAQ@", "onCreate: cresr222");
+        Toast.makeText(this, "Started the app", Toast.LENGTH_SHORT).show();
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED || checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_DENIED) {
+                String[] permissions = {android.Manifest.permission.READ_PHONE_STATE, Manifest.permission.CALL_PHONE};
+                requestPermissions(permissions, PERMISSION_REQUEST_READ_PHONE_STATE);
+            }
+        }
+
         deviceId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_UID, null);
         wakeActive = false;
         PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
@@ -106,6 +120,8 @@ public class MainActivity extends LockableActivity {
                 | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
         wakelock2.setReferenceCounted(false);
 
+        wakeUpScreen();
+        setScreenSleep();
 
         setContentView(R.layout.main_layout);
 
@@ -125,8 +141,8 @@ public class MainActivity extends LockableActivity {
         appleProjectDBServer = new AppleProjectDB(appleDB);
         appleProjectDBServer.createSitesTable();
         appleProjectDBServer.createPointsTable();
-
-        middleware = new ApplicationMiddleware(appleProjectDBServer);
+        Context context  = getApplicationContext();
+        middleware = new ApplicationMiddleware(appleProjectDBServer, context);
         firebaseClientManager = FirebaseClientManager.getFirebaseClientManagerInstance();
         firebaseClientManager.init(SITES_COLLECTION, MainActivity.siteId);
         Log.i("ZAQ@", "onCreate: initialization completed");
@@ -215,6 +231,35 @@ public class MainActivity extends LockableActivity {
         }
     }
 
+
+
+
+    public void refresh(){
+        Log.i("WSX", "update: server DB refresh");
+        if(this.alarmMgr != null && this.alarmIntent != null)
+            alarmMgr.cancel(alarmIntent);
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_ALARM);
+        PendingIntent repeatingAlarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        this.alarmMgr.cancel(repeatingAlarmIntent);
+
+        Log.i("ZAQ@", "Exiting Kiosk");
+        this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).edit().putBoolean(HomeActivity.SHARE_KIOSK_ENABLED, true).apply();
+
+        this.Unlock();
+        this.finish();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.i("WSX", "update: server DB refresh refresh");
+                Intent i = getIntent();
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+            }
+        }, 3000);
+
+    }
     public void setScreenSleep() {
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (wakelock2.isHeld())
@@ -359,6 +404,70 @@ public class MainActivity extends LockableActivity {
     public void onBackPressed() {
 
     }
+
+
+
+    public void resetIfOffDuty(){
+
+        int startHour, startMin, intervalTimer;
+        startHour = siteDataManager.getInt("startHour");
+        startMin = siteDataManager.getInt("startMin");
+
+
+        // Set the alarm to start at 8:30 a.m.
+        Log.i("WSX", "setupTimer: set starttime");
+        Calendar startDate = Calendar.getInstance();
+        startDate.setTime(Calendar.getInstance().getTime());
+        startDate.setTimeInMillis(System.currentTimeMillis());
+        startDate.set(Calendar.HOUR_OF_DAY, startHour);
+        startDate.set(Calendar.MINUTE, startMin);
+        startDate.set(Calendar.SECOND, 0);
+
+
+
+        //added
+
+        int endHour =  siteDataManager.getInt("endHour") , endMin =siteDataManager.getInt("endMin");
+        Calendar endDate = Calendar.getInstance();
+        endDate.setTimeInMillis(System.currentTimeMillis());
+        endDate.set(endDate.HOUR_OF_DAY, endHour);
+        endDate.set(endDate.MINUTE, endMin);
+        endDate.set(endDate.SECOND, 0);
+
+
+
+
+
+        Calendar nowDate = Calendar.getInstance();
+
+
+        if((endDate.getTimeInMillis() >= nowDate.getTimeInMillis())
+                && (nowDate.getTimeInMillis() >= startDate.getTimeInMillis())){
+
+
+
+            Log.i("WSX", "compareDates: ON DUTY DUTY FRAG");
+            Log.i("WSX", "compareDates: UPDATE UI DUTY FRAG");
+            Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nrStartTime "+ startDate.getTime() );
+        }else{
+            unregisterReceiver(DutyFragment.updateUIReceiver);
+            refresh();
+            Log.i("WSX", "compareDates: OFF DUTY");
+            Log.i("WSX", "compareDates: OFF DUTY SENT. . .DUTY FRAG");
+            Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nStartTime "+ startDate.getTime() );
+
+
+
+
+            Log.i("WSX", "OFF DUTY on DUTY FRAGMENT DUTY FRAG");
+
+
+        }
+
+    }
+
+
+
 
     @Override
     protected void onResume() {
@@ -525,4 +634,20 @@ public class MainActivity extends LockableActivity {
             return mFragmnetList.get(position);
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_READ_PHONE_STATE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permission granted: " + PERMISSION_REQUEST_READ_PHONE_STATE, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Permission NOT granted: " + PERMISSION_REQUEST_READ_PHONE_STATE, Toast.LENGTH_SHORT).show();
+                }
+
+                return;
+            }
+        }
+    }
+
 }

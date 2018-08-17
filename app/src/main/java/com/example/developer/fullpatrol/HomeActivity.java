@@ -1,5 +1,6 @@
 package com.example.developer.fullpatrol;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -9,9 +10,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
@@ -20,6 +24,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.HashMap;
@@ -52,7 +57,6 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
         setContentView(R.layout.activity_home);
         this.firebaseManager = FirebaseManager.getInstance();
         this.firebaseManager.init();
-
 
         devicePolicyManager = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
         componentName = new ComponentName(HomeActivity.this, Controller.class);
@@ -96,6 +100,15 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
 
         dispatcherIntent = new Intent(this, DispatcherService.class);
         turnScreenOff();
+        PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
+        PowerManager.WakeLock wakelock2 = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK |
+                PowerManager.ACQUIRE_CAUSES_WAKEUP
+                | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "wake up");
+        wakelock2.setReferenceCounted(false);
+        if(!wakelock2.isHeld()){
+            wakelock2.acquire();
+        }
+
         this.startService(dispatcherIntent);
 
     }
@@ -297,4 +310,5 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
     private String getSiteArea(){
         return this.sharedPreferences.getString(LinkDeviceActivity.PREF_LINKED_SITE_AREA, null);
     }
+
 }
