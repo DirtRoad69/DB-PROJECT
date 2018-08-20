@@ -22,6 +22,7 @@ public class AlarmReceiver extends BroadcastReceiver{
     public static final String ACTION_UNLOCK = "broadcast.reset.unlock";
     public static final String ACTION_CALLER = "CALLER", CALLER_ALARM = "alarm", CALLER_TIMER = "timer";
     public static final String ACTION_END_TIME = "end time";
+    public static final String ACTION_NOW_OFFDUTY = "action.now.offduty";
     //timer values
 
     Interpol interpol;
@@ -225,16 +226,28 @@ public class AlarmReceiver extends BroadcastReceiver{
             Log.i("WSX", "compareDates: OFF DUTY SENT. . .");
             Log.i("WSX", "compareDates: SET NEXT TIME. . .\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nStartTime "+ startDate.getTime() );
 
+//            if(startDate.getTimeInMillis() >= Calendar.getInstance().getTimeInMillis())
+//                startDate.add(startDate.DATE, 1);
 
-            DutyFragment.DutyStatus = "OFF DUTY";
-            firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
-            resetAlarm(context);
-            startDate.add(startDate.DATE, 1);
-            interpol.setNextTime(startDate.getTimeInMillis());
-            Log.i("RFC", "Ignore 2");
-            long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
-            updateTime(context, (remainingTime / 60000.0));
-
+            long nxtTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+            if(nxtTime < 0){
+                startDate.add(startDate.DATE, 1);
+                DutyFragment.DutyStatus = "OFF DUTY";
+                firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
+                resetAlarm(context);
+                interpol.setNextTime(startDate.getTimeInMillis());
+                Log.i("RFC", "Ignore 2");
+                long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                updateTime(context, (remainingTime / 60000.0));
+            }else {
+                DutyFragment.DutyStatus = "OFF DUTY";
+                firebaseManager.sendEventType("events", DutyFragment.DutyStatus, 10, "site");
+                resetAlarm(context);
+                interpol.setNextTime(startDate.getTimeInMillis());
+                Log.i("RFC", "Ignore 2");
+                long remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                updateTime(context, (remainingTime / 60000.0));
+            }
 
         }
 
@@ -271,6 +284,12 @@ public class AlarmReceiver extends BroadcastReceiver{
     private void updateTime(Context context, double duration){
         Intent resetCounter = new Intent();
         resetCounter.setAction(ACTION_REST_COUNTER);
+        resetCounter.putExtra("Duration", duration);
+        context.sendBroadcast(resetCounter);
+    }
+    private void updateTimeOffDuty(Context context, double duration){
+        Intent resetCounter = new Intent();
+        resetCounter.setAction(ACTION_NOW_OFFDUTY);
         resetCounter.putExtra("Duration", duration);
         context.sendBroadcast(resetCounter);
     }

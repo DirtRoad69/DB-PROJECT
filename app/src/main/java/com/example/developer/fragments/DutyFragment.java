@@ -84,6 +84,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         filter.addAction(AlarmReceiver.ACTION_REST_COUNTER);
         filter.addAction(AlarmReceiver.ACTION_START_PATROL);
         filter.addAction(AlarmReceiver.ACTION_END_TIME);
+        filter.addAction(AlarmReceiver.ACTION_NOW_OFFDUTY);
 
         updateUIReceiver = new BroadcastReceiver() {
             @Override
@@ -101,6 +102,9 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
                             Log.i("WSX", "onReceive: ACTION_REST_COUNTER "+Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
                             startTimer(Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
                             break;
+                        case AlarmReceiver.ACTION_NOW_OFFDUTY:
+                            Log.i("WSX", "onReceive: ACTION_NOW_OFFDUTY "+Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
+                            startTimer(Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
                         case AlarmReceiver.ACTION_START_PATROL:
                             DutyFragment.this.startFragment(new PatrolFragment());
                             break;
@@ -246,10 +250,10 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             Log.i("RFC", resultdate.toString());
             if(nxtTime < 0){
                 //MainActivity.dutyStatus = "OFF DUTY";
-
+                startDate.add(startDate.DATE, 1);
                 long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
                 Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
-                startDate.add(startDate.DATE, 1);
+
                 startTimer(remainingTime / 60000.0);
                 DutyStatus = "OFF DUTY";
 
@@ -268,20 +272,32 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             Log.i("WSX", "compareDates: UPDATE UI DUTY FRAG");
             Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nrStartTime "+ startDate.getTime() );
         }else{
-            startDate.add(startDate.DATE, 1);
 
+            Log.i("WSX", "compareDates: OFF DUTY ELSE StartDate: "+ startDate.getTime() +" NOW: "+Calendar.getInstance().getTime());
+
+//            if(startDate.getTimeInMillis() >= Calendar.getInstance().getTimeInMillis())
+//                //startDate.add(startDate.DATE, 1);
             Log.i("WSX", "compareDates: OFF DUTY");
             Log.i("WSX", "compareDates: OFF DUTY SENT. . .DUTY FRAG");
             Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nStartTime "+ startDate.getTime() );
 
+            long nxtTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+            if(nxtTime < 0){
+                startDate.add(startDate.DATE, 1);
+                DutyStatus = "OFF DUTY";
+                Log.i("WSX", "compareDates: OFF DUTY LESS THAN ZERO StartDate: "+ startDate.getTime());
+                long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+                startTimer(remainingTime / 60000.0);
+            }else {
+                Log.i("WSX", "compareDates: OFF DUTY ELSE StartDate: "+ startDate.getTime());
+                DutyFragment.DutyStatus = "OFF DUTY";
+                firebaseManager.sendEventType("events", DutyFragment.DutyStatus, 10, "site");
+                long remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+                startTimer(remainingTime / 60000.0);
 
-            DutyFragment.DutyStatus = "OFF DUTY";
-            firebaseManager.sendEventType("events",  DutyFragment.DutyStatus , 10, "site");
-            long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
-
-            Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
-            startTimer(remainingTime / 60000.0);
-            DutyStatus = "OFF DUTY";
+            }
 
             Log.i("WSX", "OFF DUTY on DUTY FRAGMENT DUTY FRAG");
 
