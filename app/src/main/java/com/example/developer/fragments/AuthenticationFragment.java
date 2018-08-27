@@ -142,7 +142,7 @@ public class AuthenticationFragment extends KioskFragment implements View.OnFocu
 
                                         AuthenticationFragment.this.removeSelf(Activity.RESULT_OK, extraData);
                                     }else{
-                                        Toast.makeText(getContext(), "Authentication Failed", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), "Authntication Failed", Toast.LENGTH_SHORT).show();
                                     }
                                     linProgess.setVisibility(View.INVISIBLE);
                                     relTemp.setVisibility(View.VISIBLE);
