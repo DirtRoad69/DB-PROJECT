@@ -72,7 +72,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     int patrolTimer;
 
     //added
-
+    private boolean isPlayed;
     private Chronometer patrolDurationConfig;
     private boolean isChrStarted;
     private long durationPatrolChr;
@@ -92,6 +92,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         super.onCreate(savedInstanceState);
         this.panicCount = MainActivity.MAX_PANIC_TAPS;
         this.panicToast = Toast.makeText(this.getContext(), String.format("press panic %d more times", panicCount), Toast.LENGTH_SHORT);
+
 
         MainActivity.wakeActive = false;
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -223,8 +224,10 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
             @Override
             public void onFinish() {
-                if(timeCountDown != null)
+                if(timeCountDown != null){
+                    closeVoice();
                     timeCountDown.cancel();
+                }
                 verityPatrol(listItems, pointCol, true);
 
             }
@@ -236,7 +239,11 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
             @Override
             public void onTick(long millisUntilFinished) {
                 long mTimeLeftInMillisCountOut = millisUntilFinished;
-
+                try{
+                    if(timeCountDown != null){
+                        ((MainActivity)getActivity()).textToSpeech(getString(R.string.scan_point), getContext());
+                    }
+                }catch (Exception e){Log.i("WSX", e.getMessage());}
                 int minutes = (int) (mTimeLeftInMillisCountOut / 1000) / 60;
                 int seconds = (int) (mTimeLeftInMillisCountOut / 1000) % 60;
 
@@ -246,7 +253,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
             @Override
             public void onFinish() {
-
+                closeVoice();
                // ((MainActivity)getActivity()).setDeviceSleep();
                 crvTimeout.setVisibility(View.GONE);
                 firebaseManager.sendEventType(MainActivity.eventsCollection, "No Points Visited", 22, "");
@@ -260,12 +267,19 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
 
     }
+    private void closeVoice(){
+        if(MainActivity.speakClass != null){
+            MainActivity.speakClass.stop();
+            MainActivity.speakClass.shutdown();
+        }
+    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         Log.d("WSX", "onDestroy: called");
         if(timeCountDown !=null)
+            //closeVoice();
             timeCountDown.cancel();
         if(timePatrolDuration !=null)
             timePatrolDuration.cancel();
@@ -280,6 +294,12 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                     if(contains(pointCol, scanData)){
                         if( (contains(listItems, scanData) && !startingPoint.pointId.equals(scanData))){
                             Toast.makeText(getContext(), "Point Already scanned", Toast.LENGTH_LONG).show();
+                            try{
+                                ((MainActivity)getActivity()).textToSpeech(getString(R.string.point_already_scanned), getContext());
+                            }catch (Exception e){
+                                Log.i("WSX", "patrol: "+e.getMessage());
+                            }
+
                         }else{
                             listItems.add(get(pointCol,scanData));
                             patrol();
@@ -287,11 +307,21 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                             if(listItems.size()>1){
                                 this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Point Scanned",scanData, 0, "");
                                 Toast.makeText(getContext(),"Point scanned", Toast.LENGTH_LONG).show();
+                                try{
+                                    ((MainActivity)getActivity()).textToSpeech(getString(R.string.point_scanned), getContext());
+                                }catch (Exception e){
+                                    Log.i("WSX", "patrol: "+e.getMessage());
+                                }
                             }
                         }
 
                     }else{
                         Toast.makeText(getContext(), "Point not from site", Toast.LENGTH_LONG).show();
+                        try{
+                            ((MainActivity)getActivity()).textToSpeech(getString(R.string.not_site_point), getContext());
+                        }catch (Exception e){
+                            Log.i("WSX", "patrol: "+e.getMessage());
+                        }
                     }
 
                     verifyPatrolVisually(listItems, pointCol);
@@ -321,17 +351,35 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
 
                     this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Guard Returned Late", 17, "");
+
+
+                    try{
+                        ((MainActivity)getActivity()).textToSpeech(getString(R.string.max_patrol_time),(getActivity().getApplicationContext()));
+                    }catch (Exception e){
+                        Log.i("WSX", "patrol: "+e.getMessage());
+                    }
                 }else if(timePatrolEnded <= MIN_TIME ){
                     //patrol to fast
 
 
                     this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrolled Too Quickly", 5, "");
+                    try{
+                        ((MainActivity)getActivity()).textToSpeech(getString(R.string.min_patrol_time), (getActivity().getApplicationContext()));
+                    }catch (Exception e){
+                        Log.i("WSX", "patrol: "+e.getMessage());
+                    }
 
                 }
 
 
                 this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrol Ended", 66, "");
                 Toast.makeText(getContext(), " --Patrol ended-- ", Toast.LENGTH_LONG).show();
+                try{
+                    ((MainActivity)getActivity()).textToSpeech(getString(R.string.patrol_completed), (getActivity().getApplicationContext()));
+                }catch (Exception e){
+                    Log.i("WSX", "patrol: "+e.getMessage());
+                }
+
                 timePatrolDuration.cancel();
                 timeCountDown.cancel();
 
@@ -347,14 +395,27 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
             timedOut.setText("");
             this.firebaseManager.sendEventType(MainActivity.eventsCollection, "Patrol started", 3,"");
             Toast.makeText(getContext(), "Patrol started", Toast.LENGTH_LONG).show();
+
+            try{
+                ((MainActivity)getActivity()).textToSpeech(getString(R.string.patrol_started), getContext());
+            }catch (Exception e){
+                Log.i("WSX", "patrol: "+e.getMessage());
+            }
+
         }else if(listItems.size() == 1){
             Toast.makeText(getContext(), " Not starting point ", Toast.LENGTH_LONG).show();
+            try{
+                ((MainActivity)getActivity()).textToSpeech(getString(R.string.not_starting_point), getContext());
+            }catch(Exception e){
+                Log.i("WSX", "checkStartPatrol: "+e.getMessage());
+            }
             listItems.clear(); //empty non start points
         }
     }
 
     private void close(){
         try {
+            //closeVoice();
             MainActivity.wakeActive = false;
             ((MainActivity)getActivity()).setScreenSleep();
         }catch (Exception e){
@@ -381,6 +442,12 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
         int tot =  missedPoints.size();
         ttvMsg.setText(Integer.toString(tot) + " Points Remaining");
+        try{
+            ((MainActivity)getActivity()).textToSpeech(Integer.toString(tot) + " Points Remaining", getContext());
+        }catch (Exception e){
+            Log.i("WSX", "patrol: "+e.getMessage());
+        }
+
 
         if(tot>0){
             String allPoints ="\tMissed Points\n";
@@ -392,10 +459,20 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
         }else{
             String allPoints ="All points scanned!\n";
+            try{
+                ((MainActivity)getActivity()).textToSpeech("All points scanned please end patrol, All points scanned please end patrol, All points scanned please end patrol", getContext());
+            }catch (Exception e){
+                Log.i("WSX", "patrol: "+e.getMessage());
+            }
             ttvMsg.setText(allPoints);
         }
         if(tot==0 && listItems.get(listItems.size()-1).pointId.equals(startingPoint.pointId)){
             Toast.makeText(this.getActivity(), "Good Patrol ", Toast.LENGTH_LONG).show();
+            try{
+                ((MainActivity)getActivity()).textToSpeech("Good Patrol", this.getActivity().getApplicationContext());
+            }catch (Exception e){
+                Log.i("WSX", "patrol: "+e.getMessage());
+            }
         }
     }
 
@@ -423,15 +500,27 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
             this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Missed point(s)", 4, "");
             Toast.makeText(this.getActivity(), String.format("%d points missing",tot), Toast.LENGTH_LONG).show();
+            try{
+                ((MainActivity)getActivity()).textToSpeech(String.format("%d points missing",tot),(getActivity().getApplicationContext()));
+            }catch (Exception e){
+                Log.i("WSX", "patrol: "+e.getMessage());
+            }
             close();
             //}
         }else if(!isFinished && listItems.get(listItems.size()-1).pointId.equals(startingPoint.pointId)){
             //send good patrol eventType 7
             this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Good patrol", 7, "");
+
+            ((MainActivity)getActivity()).textToSpeech("Good Patrol", this.getActivity().getApplicationContext());
             close();
 
         } else{
             this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrol not ended", 68, "");
+            try{
+                ((MainActivity)getActivity()).textToSpeech("Patrol not ended",(getActivity().getApplicationContext()));
+            }catch (Exception e){
+                Log.i("WSX", "patrol: "+e.getMessage());
+            }
             close();
         }
     }
@@ -504,6 +593,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 }
             }, MainActivity.PANIC_REST_DURATION);
         }
+
 
         panicCount--;
 

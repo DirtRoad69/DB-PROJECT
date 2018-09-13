@@ -1,12 +1,19 @@
 package com.example.developer.ServerSide;
 
+import android.app.ProgressDialog;
 import android.content.ContentValues;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.example.developer.fullpatrol.MainActivity;
+import com.example.developer.fullpatrol.R;
 import com.example.developer.objects.MyPoint;
 import com.example.developer.services.subroutines.Observer;
 import com.example.developer.services.subroutines.Subject;
@@ -21,10 +28,17 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class FirebaseClientManager extends Subject {
 
@@ -33,6 +47,10 @@ public class FirebaseClientManager extends Subject {
     private DocumentReference docRef;
     private DocumentReference docRefData;
     private DocumentReference docPointRef;
+    private FirebaseStorage storage;
+    private ProgressDialog progressDialog;
+    TextView ttvMsg;
+
 
     private FirebaseClientManager(String name){
         super(name);
@@ -43,6 +61,129 @@ public class FirebaseClientManager extends Subject {
         this.db = FirebaseFirestore.getInstance();
         this.docRef = db.collection(site).document(docPath);
         this.docRefData = db.collection(site).document(docPath);
+        this.storage = FirebaseStorage.getInstance();
+    }
+    private void upload(final StorageReference storageReference, String path, final android.content.Context context,final String contentType){
+        if(storageReference == null)
+            return;
+
+        try {
+
+            Log.i("WSX", "upload: called");
+
+//            final ProgressDialog progressDialog = new ProgressDialog(context);
+//            progressDialog.setTitle("Uploading");
+//            progressDialog.show();
+            showProgress("UPLOAD TO SERVER", "Uploading", context);
+            Uri pathUri = Uri.fromFile(new File(path));
+            UploadTask uploadTask = storageReference.putFile(pathUri);
+            uploadTask.addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    // Handle unsuccessful uploads
+                    Log.i("WSX", "failure: "+exception.getMessage());
+                }
+            }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                    double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
+                            .getTotalByteCount());
+                    ttvMsg.setText("Uploading "+(int)progress+"%");
+                }
+            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
+                    Log.i("WSX", "onSuccess: "+taskSnapshot.getMetadata());
+                    StorageMetadata metadata = new StorageMetadata.Builder()
+                            .setContentType(contentType)
+                            .setCustomMetadata("site", "site")
+                            .setCustomMetadata("deviceId", "deviceId")
+                            .setCustomMetadata("timeStamp", "timeStamp")
+                            .build();
+
+                    // Update metadata properties
+                    storageReference.updateMetadata(metadata)
+                            .addOnSuccessListener(new OnSuccessListener<StorageMetadata>() {
+                                @Override
+                                public void onSuccess(StorageMetadata storageMetadata) {
+                                    // Updated metadata is in storageMetadata
+                                    Toast.makeText(context, "Updated meta", Toast.LENGTH_LONG);
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception exception) {
+                                    // Uh-oh, an error occurred!
+
+                                    Toast.makeText(context, "Uh-oh, an error occurred!", Toast.LENGTH_LONG);
+                                }
+                            });
+                    dismissProgress();
+                    Toast.makeText(context, "Successful", Toast.LENGTH_LONG).show();
+                }
+            });
+
+        } catch (Exception e) {
+            Log.i("WSX", "upload: failed");
+            e.printStackTrace();
+        }
+
+
+    }
+    private void dismissProgress(){
+        if(progressDialog != null){
+            progressDialog.dismiss();
+            progressDialog  = null;
+        }
+    }
+    private void showProgress(String title, String msg,android.content.Context c) {
+
+        if (progressDialog == null) {
+            View parent = LayoutInflater.from(c).inflate(R.layout.progress_layout, null, false);
+            TextView ttvTitle = parent.findViewById(R.id.ttv_title);
+            ttvMsg = parent.findViewById(R.id.ttv_msg);
+            ttvTitle.setText(title);
+            ttvMsg.setText(msg);
+            progressDialog = new ProgressDialog(c);
+            progressDialog.setCancelable(false);
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.show();
+            progressDialog.setContentView(parent);
+
+        }
+    }
+    public void createImgRefLocationAndUpload(String fileName, String path, android.content.Context context){
+        Log.i("WSX", "createImgRefLocationAndUpload: called");
+        if(storage == null){
+            Log.i("WSX", "createImgRefLocationAndUpload: IS NOT INITIATED");
+            return;
+        }
+
+
+        StorageReference storageRef = storage.getReference();
+        StorageReference imagesRef  = storageRef.child("images/" + fileName);
+        Log.i("WSX", "createImgRefLocationAndUpload: called "+imagesRef+ " filename "+fileName);
+        //String fileFullPath = imagesRef.getPath();
+
+        upload(imagesRef, path, context, "image/jpg");
+    }
+
+    public void createAudioRefLocationAndUpload(String path, android.content.Context context){
+        Log.i("WSX", "createImgRefLocationAndUpload: called");
+        String fileName = "Audio-"+ UUID.randomUUID().toString()+".3gp";
+        if(storage == null){
+            Log.i("WSX", "createImgRefLocationAndUpload: IS NOT INITIATED");
+            return;
+        }
+
+
+        StorageReference storageRef = storage.getReference();
+        StorageReference imagesRef  = storageRef.child("audio/" + fileName);
+        Log.i("WSX", "createImgRefLocationAndUpload: called "+imagesRef+ " filename "+fileName);
+        //String fileFullPath = imagesRef.getPath();
+
+        upload(imagesRef, path, context, "audio/.3gp");
     }
 
     public void pushToCloud(Map<String, Object> siteMap){

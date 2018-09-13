@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/colorWhite"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+<ImageView
+    android:id="@+id/iv_imagePreview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="15dp"
+    android:layout_above="@+id/lin_container"/>
+
+    <LinearLayout
+        android:id="@+id/lin_container"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_height="125sp">
+
+        <Button
+            android:id="@+id/take_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="25dp"
+
+            android:background="#0095ff"
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="TAKE PICTURE"
+            android:textColor="#FFF" />
+
+        <Button
+            android:id="@+id/uploadImgToCloud"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="25dp"
+            android:layout_weight="1"
+            android:layout_marginTop="50dp"
+            android:background="#0095ff"
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="Upload image"
+            android:textColor="#FFF" />
+    </LinearLayout>
+</RelativeLayout>

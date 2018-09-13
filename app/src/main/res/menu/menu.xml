@@ -20,19 +20,9 @@
             android:id="@+id/action_report_voice"
             android:title="Voice Note"
             app:showAsAction="never"/>
-
-        <item
-            android:id="@+id/action_report_text"
-            android:title="Text Note"
-            app:showAsAction="never"/>
         <item
             android:id="@+id/action_report_image"
             android:title="Image"
-            app:showAsAction="never"/>
-
-        <item
-            android:id="@+id/action_report_video"
-            android:title="Video"
             app:showAsAction="never"/>
 
         </menu>

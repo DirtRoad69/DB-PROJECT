@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends LockableActivity {
@@ -90,8 +92,9 @@ public class MainActivity extends LockableActivity {
     public static AppleProjectDB appleProjectDBServer;
 
     ApplicationMiddleware middleware;
-    FirebaseClientManager firebaseClientManager;
+    public  static FirebaseClientManager firebaseClientManager;
     private static final int PERMISSION_REQUEST_READ_PHONE_STATE = 1;
+    public static TextToSpeech speakClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -337,7 +340,19 @@ public class MainActivity extends LockableActivity {
 
     }
 
+    public void textToSpeech(final String speak, Context context){
+        speakClass = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR){
+                    speakClass.setLanguage(Locale.UK);
+                    Log.i("WSX", "TextToSpeech: TextToSpeech spoken text: " + speak);
+                    speakClass.speak(speak, TextToSpeech.QUEUE_FLUSH, null);
 
+                }
+            }
+        });
+    }
     private void setFirstTimeAlarm() {
         alarmMgr = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         if(alarmIntent != null){

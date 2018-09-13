@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
@@ -67,7 +68,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
 
     private int panicCount;
     private Toast panicToast;
-
+    boolean isPlayed;
 
     public DutyFragment(){
         this.firebaseManager = FirebaseManager.getInstance();
@@ -80,6 +81,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         this.setHasOptionsMenu(true);
         ((MainActivity)getActivity()).wakeUpDevice();
         IntentFilter filter = new IntentFilter();
+
         filter.addAction(AlarmReceiver.ACTION_REST_ALARM);
         filter.addAction(AlarmReceiver.ACTION_REST_COUNTER);
         filter.addAction(AlarmReceiver.ACTION_START_PATROL);
@@ -330,6 +332,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         }
 
         Log.i("RFC", duration + "=dur");
+        isPlayed = false;
         mCountDownTimer = new CountDownTimer((long) (duration * 60 * 1000), 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -337,9 +340,16 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
                 if(millisUntilFinished <= 30000){
                     ((MainActivity)getActivity()).wakeUpScreen();
                     try {
-                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                        Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
-                        r.play();
+//                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//                        Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
+//                        r.play();
+                        if(millisUntilFinished <= 15000)
+                        {
+                            if(!isPlayed){
+                                ((MainActivity)getActivity()).textToSpeech(getString(R.string.start_patrol), getContext());
+                                isPlayed = true;
+                            }
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -444,6 +454,15 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             case R.id.action_exit_kiosk:
                 sendIntent(AuthenticationFragment.ACCESS_TYPE_ADMIN, REQUEST_EXIT);
                 break;
+            case R.id.action_report_voice:
+                //start voice fragment
+                DutyFragment.this.startFragment(new TakeAudioFragment());
+                break;
+            case R.id.action_report_image:
+                //start image fragment
+                DutyFragment.this.startFragment(new NewLocalCamera());
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);

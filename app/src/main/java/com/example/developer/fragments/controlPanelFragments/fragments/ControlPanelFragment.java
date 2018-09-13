@@ -15,6 +15,9 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.developer.fragments.KioskFragment;
+import com.example.developer.fragments.NewLocalCamera;
+import com.example.developer.fragments.TakeAudioFragment;
+import com.example.developer.fragments.TakePictureFragment;
 import com.example.developer.fullpatrol.AlarmReceiver;
 import com.example.developer.fullpatrol.MainActivity;
 import com.example.developer.fullpatrol.R;
@@ -119,6 +122,9 @@ public class ControlPanelFragment extends KioskFragment implements View.OnClickL
         adapter.addFragment(new DurationInfo(), "DurationInfo");
         adapter.addFragment(new PointsInfo(), "Points Info");
         adapter.addFragment(new SiteDataFragment(), new SiteDataFragment().getTitle());
+        adapter.addFragment(new TakePictureFragment(), new TakePictureFragment().getTitle());
+        adapter.addFragment(new TakeAudioFragment(), new TakeAudioFragment().getTitle());
+        adapter.addFragment(new NewLocalCamera(), new NewLocalCamera().getTitle());
 
 
 
