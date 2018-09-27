@@ -227,6 +227,7 @@ public class FirebaseManager {
         event.put("siteId", MainActivity.siteId);
         event.put("eventId", eventID);
         event.put("pointId", pointId);
+        event.put("paddySiteId ", MainActivity.paddySiteId);
         event.put("machineId", MainActivity.deviceId);
         event.put("description", description);
         event.put("timeStampp", FieldValue.serverTimestamp());

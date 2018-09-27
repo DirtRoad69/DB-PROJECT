@@ -53,6 +53,7 @@ public class MainActivity extends LockableActivity {
             , PANIC_EVENT_ID = 8;
     public static final String SITES_COLLECTION = "site";
     public static String siteId;
+    public static int paddySiteId;
 
     //firebase stuff
     FirebaseManager firebaseManager;
@@ -134,6 +135,7 @@ public class MainActivity extends LockableActivity {
         fragmentManager = this.getSupportFragmentManager();
         //this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         siteId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
+//        paddySiteId = Integer.parseInt(this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null));
 
         //added
 
@@ -236,7 +238,7 @@ public class MainActivity extends LockableActivity {
 
 
 
-
+    //
     public void refresh(){
         Log.i("WSX", "update: server DB refresh");
         if(this.alarmMgr != null && this.alarmIntent != null)
@@ -263,12 +265,17 @@ public class MainActivity extends LockableActivity {
         }, 3000);
 
     }
+
+    //clear all the flags to make the device sleep
     public void setScreenSleep() {
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (wakelock2.isHeld())
             wakelock2.release();
 
     }
+
+
+    //wake the device up if it is sleeping
     public void wakeUpDevice() {
 
         if(!wakelock.isHeld()){
@@ -276,6 +283,7 @@ public class MainActivity extends LockableActivity {
         }
     }
 
+    //set the device to sleep
     public void setDeviceSleep() {
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (wakelock.isHeld())
