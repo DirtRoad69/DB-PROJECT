@@ -41,6 +41,7 @@ import java.util.Map;
 public class LinkDeviceActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String SHARED_DEVICE_ID = "Shared Device id";
     public static final String SHARED_SITE_ID = "Shared Site id";
+    public static final String SHARED_SITE_ID_INT = "Shared Site id int";
     public static final String PREF_UID = "PREF_UID";
     public static final String PREF_LINKED_SITE = "PREF_LINKED_SITE";
     public static final String PREF_LINKED_SITE_NAME= "PREF_LINKED_SITE_NAME";

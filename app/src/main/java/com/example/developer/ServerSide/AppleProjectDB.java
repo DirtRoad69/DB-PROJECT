@@ -46,7 +46,8 @@ public class AppleProjectDB extends Subject {
                 "\tminTime int, \n" +
                 "\tmaxTime int, \n" +
                 "\tintervalTimer int, \n" +
-                "\tstartDelay int \n" +
+                "\tstartDelay int, \n" +
+                "\tsiteIdInt int \n" +
                 ");";
         mDatabase.execSQL(sqlSite);
     }
@@ -56,11 +57,12 @@ public class AppleProjectDB extends Subject {
         String sqlSite = "CREATE TABLE IF NOT EXISTS Events (\n" +
                 "\tsiteId varchar(200) PRIMARY KEY,\n" +
                 "\teventId int, \n" +
+                "\tsiteIdInt int, \n" +
                 "\tpointId varchar(200),  \n" +
                 "\tlocation varchar(200) , \n" +
                 "\tmachineId varchar(200), \n" +
                 "\tdescription varchar(200), \n" +
-                "\ttimeStampp DATETIME \n" +
+                "\ttimestamp DATETIME \n" +
                 ");";
         mDatabase.execSQL(sqlSite);
         /*
@@ -126,7 +128,7 @@ public class AppleProjectDB extends Subject {
     public String[] getColumnNames(String tablename){
 
         if(tablename.contains("Sites")){
-            String[] colNames = {"siteId", "siteName", "area", "startEndPoint", "startPatrolTime", "endPatrolTime",  "minTime", "maxTime", "intervalTimer", "startDelay"};
+            String[] colNames = {"siteId", "siteName", "area", "startEndPoint", "startPatrolTime", "endPatrolTime",  "minTime", "maxTime", "intervalTimer", "startDelay", "siteIdInt"};
             return colNames;
         }else if(tablename.contains("PatrolPoints")) {
             String[] colNames = {"pointId", "siteId", "longi", "lati", "pointDescription"};
@@ -142,6 +144,8 @@ public class AppleProjectDB extends Subject {
                 "    pointDescription varchar(200),\n" +
                 "    longi float, \n" +
                 "    lati float,   \n" +
+                "    siteIdInt int, \n" +
+
                 "    FOREIGN KEY (siteId) REFERENCES Sites(siteId)\n" +
                 ");     \n";
 

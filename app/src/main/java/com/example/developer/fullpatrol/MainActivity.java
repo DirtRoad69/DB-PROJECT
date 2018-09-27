@@ -54,6 +54,7 @@ public class MainActivity extends LockableActivity {
     public static final String SITES_COLLECTION = "site";
     public static String siteId;
     public static int paddySiteId;
+    public static int siteIdInt;
 
     //firebase stuff
     FirebaseManager firebaseManager;
@@ -100,7 +101,7 @@ public class MainActivity extends LockableActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        siteIdInt = 4;
         Log.i("ZAQ@", "onCreate: cresr");
         this.Lock();
         Log.i("ZAQ@", "onCreate: cresr222");
@@ -114,6 +115,8 @@ public class MainActivity extends LockableActivity {
         }
 
         deviceId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_UID, null);
+
+        siteIdInt = 4;//this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getInt(LinkDeviceActivity.SHARED_SITE_ID_INT,4);
         wakeActive = false;
         PowerManager pm = (PowerManager) getSystemService(this.POWER_SERVICE);
         wakelock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "wake up");
@@ -135,7 +138,6 @@ public class MainActivity extends LockableActivity {
         fragmentManager = this.getSupportFragmentManager();
         //this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         siteId = this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
-//        paddySiteId = Integer.parseInt(this.getSharedPreferences(this.getPackageName(), MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null));
 
         //added
 
@@ -149,6 +151,7 @@ public class MainActivity extends LockableActivity {
         Context context  = getApplicationContext();
         middleware = new ApplicationMiddleware(appleProjectDBServer, context);
         firebaseClientManager = FirebaseClientManager.getFirebaseClientManagerInstance();
+        Log.i(TAG, "onCreate: "+ MainActivity.siteId);
         firebaseClientManager.init(SITES_COLLECTION, MainActivity.siteId);
         Log.i("ZAQ@", "onCreate: initialization completed");
 

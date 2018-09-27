@@ -96,6 +96,7 @@ public class SiteDataFragment extends KioskFragment implements View.OnClickListe
         String[] tableCols = projectDB.getColumnNames("PatrolPoints");
         double longi = 0, lati = 0;
         String pointId = "", pointDescription = "";
+        Log.i("WSX", "displayPointData: "+pointCursor);
         if(pointCursor.moveToNext()) {
             do {
 

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 public class FirebaseManager {
     public static final String TAG = "OnFirebase";
@@ -123,9 +124,10 @@ public class FirebaseManager {
         Map<String, Object> event = new HashMap<>();
         event.put("siteId", MainActivity.siteId);
         event.put("eventId", eventID);
+        event.put("siteIdInt", MainActivity.siteIdInt);
         event.put("machineId", MainActivity.deviceId);
         event.put("description", description);
-        event.put("timeStampp", FieldValue.serverTimestamp());
+        event.put("timestamp", FieldValue.serverTimestamp());
         event.put("location", "N-S");
         addSite(collection, event);
 
@@ -139,6 +141,8 @@ public class FirebaseManager {
         pushData(collection, machine,dataPushCallack, documentId);
 
     }
+
+
 
     public void linkDevice(String col, String doucumentId, final DataPushCallack callack, String docSiteId){
         Map<String, Object> ref = new HashMap<>();
@@ -227,10 +231,10 @@ public class FirebaseManager {
         event.put("siteId", MainActivity.siteId);
         event.put("eventId", eventID);
         event.put("pointId", pointId);
-        event.put("paddySiteId ", MainActivity.paddySiteId);
+        event.put("siteIdInt ", MainActivity.siteIdInt);
         event.put("machineId", MainActivity.deviceId);
         event.put("description", description);
-        event.put("timeStampp", FieldValue.serverTimestamp());
+        event.put("timestamp", FieldValue.serverTimestamp());
         event.put("location", "N-S");
         addSite(collection, event);
 
@@ -327,12 +331,14 @@ public class FirebaseManager {
         String[] tableCols = projectDB.getColumnNames("PatrolPoints");
         double longi = 0, lati = 0;
         Cursor pointCursor = projectDB.getTableData("PatrolPoints");
+        Log.i("WSX", "getPointDataLocally: "+pointCursor.getCount());
         String pointId = "", pointDescription = "";
         if(pointCursor.moveToNext()) {
             do {
 
 
                 for (int i = 0; i < tableCols.length; i++) {
+                    Log.i("WSX", "getPointDataLocally2: "+pointCursor.getColumnIndex(tableCols[i]));
                     String colContent = pointCursor.getString(pointCursor.getColumnIndex(tableCols[i]));
                     switch (tableCols[i]) {
 
@@ -455,6 +461,9 @@ public class FirebaseManager {
                         case "siteId":
                             data.put("siteId", colContent);
                             break;
+                        case "siteIdInt":
+                            data.put("siteIdInt", colContent);
+                            break;
                         case "siteName":
                             data.put("siteName", colContent);
                             break;
@@ -557,7 +566,18 @@ public class FirebaseManager {
                         String[] times = (startPatrolTime + ":" + endPatrolTime).replace(" ", "").split(":");
 
                         Map<String, Object> data = document.getData();
+
                         ContentValues values = FirebaseClientManager.getFirebaseClientManagerInstance().toContentValues(data);
+
+                        Log.i(TAG, "siteIdInt: "+document.get("siteIdInt"));
+                        try {
+
+                            MainActivity.siteIdInt = Integer.parseInt(String.valueOf( document.get("siteIdInt")));
+
+                            Log.i(TAG, "siteIdInt: "+document.get("siteIdInt"));
+                        }catch (Exception e){
+                            Log.i(TAG, "onComplete: failed to get siteIdInt "+e);
+                        }
 
                         data.put("startHour", Integer.parseInt(times[0]));
                         data.put("startMin", Integer.parseInt(times[1]));
