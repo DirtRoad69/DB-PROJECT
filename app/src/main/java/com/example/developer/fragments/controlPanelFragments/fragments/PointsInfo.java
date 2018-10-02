@@ -96,8 +96,9 @@ public class PointsInfo extends KioskFragment implements View.OnClickListener, C
 
     private void getDeviceCurrentLocation(final String pointId) {
         Log.i("ZAQ!", "close: " + pointId);
+        Log.i("ZAQ!", "onFragmentResult: 4");
         if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
+            Log.i("ZAQ!", "close: no permission");
             return;
         }
         mfusedLocationProviderclient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
@@ -122,6 +123,11 @@ public class PointsInfo extends KioskFragment implements View.OnClickListener, C
                     addPoint(pointId, geoPoint);
 
 
+                }else{
+                    Toast.makeText(getContext(), "Failed to get Location", Toast.LENGTH_LONG).show();
+                    GeoPoint geoPoint = new GeoPoint(0, 0);
+
+                    addPoint(pointId, geoPoint);
                 }
             }
         });

@@ -42,6 +42,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
     private static final int REQ_SCAN = 123
             ,MIN_TO_MIL = 60000;
+    private static long PATROL_DURATION;
 
 
     private FirebaseManager firebaseManager;
@@ -179,6 +180,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         Log.i("QAZ", "getTimeEndPatrol: "+diff);
 
 
+        PATROL_DURATION = diff;
+
         return diff;
 
     }
@@ -217,7 +220,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 int seconds = (int) (millisUntilFinished / 1000) % 60;
 
                // String timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
-               // timePatrolEnded = millisUntilFinished;
+               timePatrolEnded = millisUntilFinished;
+                Log.i("WSX", "onTick: "+timePatrolEnded);
 
                // ttvDuraton.setText(timeLeftFormatted);
             }
@@ -341,14 +345,15 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         if(listItems.size() > 1){
             if (listItems.get(listItems.size()-1).pointId.equals(startingPoint.pointId)){
 
-                Log.i(TAG, "min: "+MIN_TIME);
-                Log.i(TAG, "max: "+MAX_TIME);
+                Log.i("WSX", "min: "+MIN_TIME);
+                Log.i("WSX", "max: "+MAX_TIME);
 
-                timePatrolEnded = Math.abs(timePatrolEnded - patrolTimer);
-                Log.i(TAG, "timePatrolEnded: "+timePatrolEnded);
+                Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
+                timePatrolEnded = Math.abs(timePatrolEnded - PATROL_DURATION);
+                Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
                 if(timePatrolEnded >= MAX_TIME){
                     //patrol too quick
-
+                    Log.i("WSX", "timePatrolEnded max: "+timePatrolEnded);
 
                     this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Guard Returned Late", 17, "");
 
@@ -361,6 +366,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 }else if(timePatrolEnded <= MIN_TIME ){
                     //patrol to fast
 
+                    Log.i("WSX", "timePatrolEnded min: "+timePatrolEnded);
 
                     this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrolled Too Quickly", 5, "");
                     try{

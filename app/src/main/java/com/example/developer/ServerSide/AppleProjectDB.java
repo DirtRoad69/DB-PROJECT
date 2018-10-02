@@ -128,7 +128,7 @@ public class AppleProjectDB extends Subject {
     public String[] getColumnNames(String tablename){
 
         if(tablename.contains("Sites")){
-            String[] colNames = {"siteId", "siteName", "area", "startEndPoint", "startPatrolTime", "endPatrolTime",  "minTime", "maxTime", "intervalTimer", "startDelay", "siteIdInt"};
+            String[] colNames = {"siteId", "siteName", "area", "startEndPoint", "startPatrolTime", "endPatrolTime",  "minTime", "maxTime", "intervalTimer", "startDelay"};
             return colNames;
         }else if(tablename.contains("PatrolPoints")) {
             String[] colNames = {"pointId", "siteId", "longi", "lati", "pointDescription"};
