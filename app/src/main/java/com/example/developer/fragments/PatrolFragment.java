@@ -318,11 +318,9 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
 
                         }else{
                             listItems.add(get(pointCol,scanData));
-                            patrol();
-
                             if(listItems.size()>1){
-                               if(!startingPoint.pointId.contains(scanData))
-                                   this.firebaseManager.sendEventType(MainActivity.eventsCollection,getPointDescription(scanData),scanData, 0, "");
+                                if(!startingPoint.pointId.contains(scanData))
+                                    this.firebaseManager.sendEventType(MainActivity.eventsCollection,getPointDescription(scanData),scanData, 0, "");
                                 Toast.makeText(getContext(),getPointDescription(scanData), Toast.LENGTH_LONG).show();
                                 try{
                                     ((MainActivity)getActivity()).textToSpeech(getString(R.string.point_scanned), getContext());
@@ -330,6 +328,9 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                                     Log.i("WSX", "patrol: "+e.getMessage());
                                 }
                             }
+                            patrol();
+
+
                         }
 
                     }else{
@@ -357,42 +358,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         //check if patrol ended
         if(listItems.size() > 1){
             if (listItems.get(listItems.size()-1).pointId.equals(startingPoint.pointId)){
-                this.firebaseManager.sendEventType(MainActivity.eventsCollection,startingPoint.pointDescription,startingPoint.pointId, 0, "");
-                Log.i("WSX", "min: "+MIN_TIME);
-                Log.i("WSX", "max: "+MAX_TIME);
-
-                Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
-                timePatrolEnded = Math.abs(timePatrolEnded - PATROL_DURATION);
-                Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
-                if(timePatrolEnded >= MAX_TIME){
-                    //patrol too quick
-                    Log.i("WSX", "timePatrolEnded max: "+timePatrolEnded);
-
-                    this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Guard Returned Late", 17, "");
-
-
-                    try{
-                        ((MainActivity)getActivity()).textToSpeech(getString(R.string.max_patrol_time),(getActivity().getApplicationContext()));
-                    }catch (Exception e){
-                        Log.i("WSX", "patrol: "+e.getMessage());
-                    }
-                }else if(timePatrolEnded <= MIN_TIME ){
-                    //patrol to fast
-
-                    Log.i("WSX", "timePatrolEnded min: "+timePatrolEnded);
-
-                    this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrolled Too Quickly", 5, "");
-                    try{
-                        ((MainActivity)getActivity()).textToSpeech(getString(R.string.min_patrol_time), (getActivity().getApplicationContext()));
-                    }catch (Exception e){
-                        Log.i("WSX", "patrol: "+e.getMessage());
-                    }
-
-                }
-
-
-                this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrol Ended", 66, "");
-                Toast.makeText(getContext(), " --Patrol ended-- ", Toast.LENGTH_LONG).show();
+                verityPatrol(listItems, pointCol, false);
                 try{
                     ((MainActivity)getActivity()).textToSpeech(getString(R.string.patrol_completed), (getActivity().getApplicationContext()));
                 }catch (Exception e){
@@ -402,9 +368,43 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 timePatrolDuration.cancel();
                 timeCountDown.cancel();
 
-                verityPatrol(listItems, pointCol, false);
             }
         }
+    }
+
+    private void patrolTimeToComplete() {
+        Log.i("WSX", "min: "+MIN_TIME);
+        Log.i("WSX", "max: "+MAX_TIME);
+
+        Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
+        timePatrolEnded = Math.abs(timePatrolEnded - PATROL_DURATION);
+        Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
+        if(timePatrolEnded >= MAX_TIME){
+            //patrol too quick
+            Log.i("WSX", "timePatrolEnded max: "+timePatrolEnded);
+
+            this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Guard Returned Late", 17, "");
+
+
+            try{
+                ((MainActivity)getActivity()).textToSpeech(getString(R.string.max_patrol_time),(getActivity().getApplicationContext()));
+            }catch (Exception e){
+                Log.i("WSX", "patrol: "+e.getMessage());
+            }
+        }else if(timePatrolEnded <= MIN_TIME ){
+            //patrol to fast
+            Log.i("WSX", "timePatrolEnded min: "+timePatrolEnded);
+
+            this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrolled Too Quickly", 5, "");
+            try{
+                ((MainActivity)getActivity()).textToSpeech(getString(R.string.min_patrol_time), (getActivity().getApplicationContext()));
+            }catch (Exception e){
+                Log.i("WSX", "patrol: "+e.getMessage());
+            }
+
+        }
+
+
     }
 
     public void checkStartPatrol(){
@@ -497,7 +497,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     }
 
     private void verityPatrol(List<PatrolPoint> scannedPoints, List<PatrolPoint> pointCollection, boolean isFinished) {
-
+        Log.i("WSX", "verityPatrol: 789");
         //array of missed points
         List<PatrolPoint> missedPoints = new ArrayList<>();
 
@@ -529,8 +529,11 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
             //}
         }else if(!isFinished && listItems.get(listItems.size()-1).pointId.equals(startingPoint.pointId)){
             //send good patrol eventType 7
-            this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Good patrol", 7, "");
 
+            patrolTimeToComplete();
+            this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Good patrol", 7, "");
+            this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Patrol Ended", 66, "");
+            Toast.makeText(getContext(), " --Patrol ended-- ", Toast.LENGTH_LONG).show();
             ((MainActivity)getActivity()).textToSpeech("Good Patrol", this.getActivity().getApplicationContext());
             close();
 

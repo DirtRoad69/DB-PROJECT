@@ -108,7 +108,7 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
 
         Toast.makeText(this, "Scheduled", Toast.LENGTH_SHORT).show();
         AlarmManager manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        long interval = 60 * 1000; // 1 minute
+        long interval = 60 * 60 * 1000; // 60 minute
         Calendar c = Calendar.getInstance();
         c.add(Calendar.SECOND, 10);
         long afterTenSeconds = c.getTimeInMillis();
