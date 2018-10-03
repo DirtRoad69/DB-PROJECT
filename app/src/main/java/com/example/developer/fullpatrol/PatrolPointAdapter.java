@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,8 +30,10 @@ public class PatrolPointAdapter extends ArrayAdapter<PatrolPoint> {
         TextView ttvName = convertView.findViewById(R.id.ttv_name),
                 ttvUID = convertView.findViewById(R.id.ttv_area);
         PatrolPoint patrolPoint = this.getItem(position);
+        String debugString = patrolPoint.pointId+ " " + (patrolPoint.pointDescription.isEmpty() ? patrolPoint.pointId : patrolPoint.pointDescription) + (patrolPoint.isStarting? "( Starting Point )" : "");
 
-        ttvName.setText((patrolPoint.pointDescription.isEmpty() ? patrolPoint.pointId : patrolPoint.pointDescription) + (patrolPoint.isStarting? " ( Starting Point )" : ""));
+        Log.e("WSX", "getView:"+position+" "+debugString);
+        ttvName.setText((patrolPoint.pointDescription.isEmpty() ? patrolPoint.pointId : patrolPoint.pointDescription) + (patrolPoint.isStarting? "( Starting Point )" : ""));
         ttvUID.setText(patrolPoint.pointId);
 
         if(patrolPoint.isScanned){

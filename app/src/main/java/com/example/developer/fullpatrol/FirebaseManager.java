@@ -355,9 +355,9 @@ public class FirebaseManager {
                             pointDescription = colContent;
                             break;
                     }
-                    Log.i("ZAQ", "displayPointData: " +longi+"|"+lati+"|"+pointId+"|"+"|");
-                    if (lati != 0 && longi != 0 && !pointId.isEmpty()) {
-                        Log.i("ZAQ", "added: " +longi+"|"+lati+"|"+pointId+"|"+"|"+pointDescription);
+                    Log.e("WSX", "displayPointData: " +longi+"|"+lati+"|"+pointId+"|"+"|");
+                    if (lati != 0 && longi != 0 && !pointId.isEmpty() && !pointDescription.isEmpty()) {
+                        Log.e("WSX", "added: " +longi+"|"+lati+"|"+pointId+"|"+"|"+pointDescription);
                         GeoPoint geoPoint = new GeoPoint(lati, longi);
                         PatrolPoint pointObj = new PatrolPoint(geoPoint, pointDescription, pointId, false);
                         longi = 0; lati = 0;
@@ -388,7 +388,7 @@ public class FirebaseManager {
                         PatrolPoint pointObj = new PatrolPoint(doc.getGeoPoint("geoPoint"), doc.getString("pointDescription"), doc.getId(), false);
 
                         patrolPoints.add(pointObj);
-                        Log.i("RFV", patrolPoints.size()+"  -  "+ pointObj.pointDescription);
+                        Log.e("WSX", patrolPoints.size()+"  -  "+ pointObj.pointDescription);
 
 
                     }
@@ -516,8 +516,8 @@ public class FirebaseManager {
 
                    Map<String, Object> localData = getLocalSiteData();
 
-                   Log.i("RFC", "getPatrolDataLocally: data set"+localData.keySet());
-                   Log.i("RFC", "getPatrolDataLocally: "+localData);
+                   Log.e("WSX", "getPatrolDataLocally: data set"+localData.keySet());
+                   Log.e("WSX", "getPatrolDataLocally: "+localData);
 
                    String startPatrolTime = localData.get("startPatrolTime").toString(), endPatrolTime = localData.get("endPatrolTime").toString();
                    String[] times = (startPatrolTime + ":" + endPatrolTime).replace(" ", "").split(":");

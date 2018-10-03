@@ -192,7 +192,7 @@ public class PointsInfo extends KioskFragment implements View.OnClickListener, C
         Log.i("ZAQ!", " close 2 : " + pointId);
         if(pointConfigs.isEmpty())
         {
-            PatrolPointConfig pointObj = new PatrolPointConfig(geoPoint, "not set", pointId);
+            PatrolPointConfig pointObj = new PatrolPointConfig(geoPoint, "", pointId);
             pointConfigs.add(pointObj);
         }else
         {

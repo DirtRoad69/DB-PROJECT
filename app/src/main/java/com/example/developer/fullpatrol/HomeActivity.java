@@ -2,7 +2,9 @@ package com.example.developer.fullpatrol;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
@@ -27,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,7 +51,7 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
     DevicePolicyManager devicePolicyManager;
     ComponentName componentName;
     boolean active;
-
+    private PendingIntent alarmIntent;
 
 
     @Override
@@ -57,6 +60,9 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
         setContentView(R.layout.activity_home);
         this.firebaseManager = FirebaseManager.getInstance();
         this.firebaseManager.init();
+
+
+        startTestSignalService();
 
         devicePolicyManager = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
         componentName = new ComponentName(HomeActivity.this, Controller.class);
@@ -92,6 +98,23 @@ public class HomeActivity extends Activity implements View.OnClickListener, Comp
         Intent accessIntent = new Intent(this, InputCollector.class);;
         accessIntent.putExtra(InputCollector.ACCESS_TYPE,  InputCollector.ACCESS_TYPE_ADMIN);
         this.startActivityForResult(accessIntent, requestCode);
+    }
+
+    private void startTestSignalService(){
+
+        Intent launchIntent = new Intent(this, TestSignal.class);
+        alarmIntent = PendingIntent.getService(this, 0, launchIntent, 0);
+
+
+        Toast.makeText(this, "Scheduled", Toast.LENGTH_SHORT).show();
+        AlarmManager manager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        long interval = 60 * 1000; // 1 minute
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.SECOND, 10);
+        long afterTenSeconds = c.getTimeInMillis();
+
+        manager.setRepeating(AlarmManager.RTC_WAKEUP, afterTenSeconds, interval, alarmIntent);
+
     }
 
     private void enableKioskMode() {

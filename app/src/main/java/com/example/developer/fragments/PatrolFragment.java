@@ -127,6 +127,18 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         return parentView;
     }
 
+    private String getPointDescription(String pointId){
+        String pointDescription = "";
+        for(int i = 0; i < pointCol.size();  i++){
+            if(pointCol.get(i).pointId.contains(pointId)){
+                pointDescription = pointCol.get(i).pointDescription;
+                if(pointDescription.isEmpty()){
+                    pointDescription = pointId;
+                }
+            }
+        }
+        return pointDescription;
+    }
     public void setUpData() {
         pointCol = (List<PatrolPoint>)this.siteDataManager.get("patrolPoints");
         for(int pos = 0; pos < pointCol.size(); pos++){
@@ -309,8 +321,9 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                             patrol();
 
                             if(listItems.size()>1){
-                                this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Point Scanned",scanData, 0, "");
-                                Toast.makeText(getContext(),"Point scanned", Toast.LENGTH_LONG).show();
+                               if(!startingPoint.pointId.contains(scanData))
+                                   this.firebaseManager.sendEventType(MainActivity.eventsCollection,getPointDescription(scanData),scanData, 0, "");
+                                Toast.makeText(getContext(),getPointDescription(scanData), Toast.LENGTH_LONG).show();
                                 try{
                                     ((MainActivity)getActivity()).textToSpeech(getString(R.string.point_scanned), getContext());
                                 }catch (Exception e){
@@ -344,7 +357,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         //check if patrol ended
         if(listItems.size() > 1){
             if (listItems.get(listItems.size()-1).pointId.equals(startingPoint.pointId)){
-
+                this.firebaseManager.sendEventType(MainActivity.eventsCollection,startingPoint.pointDescription,startingPoint.pointId, 0, "");
                 Log.i("WSX", "min: "+MIN_TIME);
                 Log.i("WSX", "max: "+MAX_TIME);
 
@@ -400,6 +413,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
             timeCountDown.cancel();
             timedOut.setText("");
             this.firebaseManager.sendEventType(MainActivity.eventsCollection, "Patrol started", 3,"");
+            this.firebaseManager.sendEventType(MainActivity.eventsCollection,startingPoint.pointDescription,startingPoint.pointId, 0, "");
             Toast.makeText(getContext(), "Patrol started", Toast.LENGTH_LONG).show();
 
             try{
@@ -409,7 +423,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
             }
 
         }else if(listItems.size() == 1){
-            Toast.makeText(getContext(), " Not starting point ", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Not starting point ", Toast.LENGTH_LONG).show();
             try{
                 ((MainActivity)getActivity()).textToSpeech(getString(R.string.not_starting_point), getContext());
             }catch(Exception e){
