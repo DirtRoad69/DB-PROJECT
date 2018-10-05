@@ -23,21 +23,30 @@ public class ApplicationMiddleware extends Observer {
     @Override
     public void update(int location) {
         //update server
-        if(location == MainActivity.LOCAL_DB){
+        if (location == MainActivity.LOCAL_DB) {
             Log.i("WSX", "update: Local DB changed");
             //push to server
 
 
-        }
-        else if(location == MainActivity.SERVER){
+        } else if (location == MainActivity.SERVER) {
             Log.i("WSX", "update: server DB changed");
-            if(DutyFragment.DutyStatus.equals("OFF DUTY")){
+            if (DutyFragment.DutyStatus.equals("OFF DUTY")) {
                 Intent i = new Intent(AlarmReceiver.ACTION_END_TIME);
                 context.sendBroadcast(i);
             }
             Log.i("WSX", "update: server DB changed 2");
 
+        } else if (location == MainActivity.RESTART) {
+
+            Log.i("WSX", "update: restarted");
+            Intent i = new Intent(AlarmReceiver.ACTION_END_TIME);
+            context.sendBroadcast(i);
+            Log.i("WSX", "update: restarted done");
+
+
         }
 
     }
+
+
 }

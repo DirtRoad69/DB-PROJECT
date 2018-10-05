@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.example.developer.ServerSide.FirebaseClientManager;
 
 import com.example.developer.fragments.KioskFragment;
+import com.example.developer.fullpatrol.FirebaseManager;
 import com.example.developer.fullpatrol.MainActivity;
 import com.example.developer.fullpatrol.R;
 
@@ -49,6 +50,7 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener,
     private boolean isCaps;
     private RelativeLayout relTemp;
     private EditText selectedEdt;
+    private FirebaseManager firebaseManager;
 
     @Nullable
     @Override
@@ -56,7 +58,7 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener,
         view = inflater.inflate(R.layout.duration_info, container, false);
         Log.i("ZAQ", "onCreateView: DurationInfo");
         this.relTemp = view.findViewById(R.id.tmp_rel);
-
+        this.firebaseManager = FirebaseManager.getInstance();
 
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -98,6 +100,7 @@ public class DurationInfo extends KioskFragment implements View.OnClickListener,
                     Log.i("ZAQ@", "onClick: " + value.keySet());
                     close();
                     addSiteToCloud();
+                    firebaseManager.sendEventType(MainActivity.eventsCollection, "New Patrol Setup", 16, "");
 
                     Toast.makeText(getContext(), "DATA SAVED", Toast.LENGTH_SHORT).show();
                     ControlPanelFragment.setViewPager(2);

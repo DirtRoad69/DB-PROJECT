@@ -2,6 +2,7 @@ package com.example.developer.ServerSide;
 
 import android.app.ProgressDialog;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.example.developer.fullpatrol.AlarmReceiver;
 import com.example.developer.fullpatrol.MainActivity;
 import com.example.developer.fullpatrol.R;
 import com.example.developer.objects.MyPoint;
@@ -250,10 +252,15 @@ public class FirebaseClientManager extends Subject {
         Object[] keys = dataMap.keySet().toArray();
 
 
-        for(int i = 0 ; i < keys.length ; i++){
-            values.put(keys[i].toString(), dataMap.get(keys[i].toString()).toString());
-        }
+       try{
+           for(int i = 0 ; i < keys.length ; i++){
+               values.put(keys[i].toString(), dataMap.get(keys[i].toString()).toString());
+           }
 
+       }catch (Exception e){
+           Log.i("WSX", "toContentValues: failed");
+           notifyAllObservers();
+       }
 
         return values;
     }
@@ -282,7 +289,7 @@ public class FirebaseClientManager extends Subject {
     @Override
     public void notifyAllObservers() {
         for (Observer observer : AppleProjectDB.observers) {
-            observer.update(MainActivity.SERVER);
+            observer.update(MainActivity.RESTART);
         }
     }
 

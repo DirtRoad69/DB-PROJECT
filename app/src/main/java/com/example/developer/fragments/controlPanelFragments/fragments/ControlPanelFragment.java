@@ -19,6 +19,7 @@ import com.example.developer.fragments.NewLocalCamera;
 import com.example.developer.fragments.TakeAudioFragment;
 import com.example.developer.fragments.TakePictureFragment;
 import com.example.developer.fullpatrol.AlarmReceiver;
+import com.example.developer.fullpatrol.FirebaseManager;
 import com.example.developer.fullpatrol.MainActivity;
 import com.example.developer.fullpatrol.R;
 
@@ -35,6 +36,7 @@ public class ControlPanelFragment extends KioskFragment implements View.OnClickL
     private static KioskFragment siteDataFragment;
     private  KioskFragment pointsObj, durationObj, siteDataObj;
     public  MainActivity.MyAdapter adapter;
+    private FirebaseManager firebaseManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,7 +47,7 @@ public class ControlPanelFragment extends KioskFragment implements View.OnClickL
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
+        this.firebaseManager = FirebaseManager.getInstance();
 
 
         mMyadpter = new MainActivity.MyAdapter(getChildFragmentManager());
@@ -65,7 +67,7 @@ public class ControlPanelFragment extends KioskFragment implements View.OnClickL
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                firebaseManager.sendEventType(MainActivity.eventsCollection, "New Patrol Setup", 16, "");
                 Toast.makeText(getContext(), "DONE", Toast.LENGTH_LONG).show();
                 close();
                 Intent i = new Intent(AlarmReceiver.ACTION_END_TIME);

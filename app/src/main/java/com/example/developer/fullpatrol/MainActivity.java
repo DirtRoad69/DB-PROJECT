@@ -52,6 +52,7 @@ public class MainActivity extends LockableActivity {
             , PANIC_REST_DURATION = 5000
             , PANIC_EVENT_ID = 8;
     public static final String SITES_COLLECTION = "site";
+    public static final int RESTART = 9852 ;
     public static String siteId;
     public static int paddySiteId;
     public static int siteIdInt;
@@ -106,7 +107,6 @@ public class MainActivity extends LockableActivity {
         this.Lock();
         Log.i("ZAQ@", "onCreate: cresr222");
         Toast.makeText(this, "Started the app", Toast.LENGTH_SHORT).show();
-
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             if (checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED || checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_DENIED) {
                 String[] permissions = {android.Manifest.permission.READ_PHONE_STATE, Manifest.permission.CALL_PHONE};
@@ -185,13 +185,12 @@ public class MainActivity extends LockableActivity {
 
 
 
-
     public void startKioskSession(String collection, String siteId) {
         this.firebaseManager = FirebaseManager.getInstance();
         this.siteDataManager = SiteDataManager.getInstance();
         this.firebaseManager.init(collection, siteId);
         Log.i("ZAQ@", "startKioskSession: initialization starting");
-
+        firebaseManager.sendEventType(MainActivity.eventsCollection, "***BOOT UP***", 1, "");
         this.firebaseManager.getPatrolDataLocally(new FirebaseManager.DataCallback() {
             @Override
             public void onDataUpdated(Map<String, Object> data) {
@@ -246,7 +245,7 @@ public class MainActivity extends LockableActivity {
         Log.i("WSX", "update: server DB refresh");
         if(this.alarmMgr != null && this.alarmIntent != null)
             alarmMgr.cancel(alarmIntent);
-
+        firebaseManager.sendEventType(MainActivity.eventsCollection, "***BOOT UP***", 1, "");
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_ALARM);
         PendingIntent repeatingAlarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);

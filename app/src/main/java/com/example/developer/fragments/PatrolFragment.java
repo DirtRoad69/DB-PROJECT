@@ -77,6 +77,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
     private Chronometer patrolDurationConfig;
     private boolean isChrStarted;
     private long durationPatrolChr;
+    private boolean guardOnPatrol;
 
     public PatrolFragment(){
         this.firebaseManager = FirebaseManager.getInstance();
@@ -94,7 +95,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         this.panicCount = MainActivity.MAX_PANIC_TAPS;
         this.panicToast = Toast.makeText(this.getContext(), String.format("press panic %d more times", panicCount), Toast.LENGTH_SHORT);
 
-
+        guardOnPatrol = true;
         MainActivity.wakeActive = false;
         getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         //((MainActivity)getActivity()).wakeUpDevice();
@@ -228,14 +229,17 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         timePatrolDuration = new CountDownTimer(duration, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                int minutes = (int) (millisUntilFinished / 1000) / 60;
-                int seconds = (int) (millisUntilFinished / 1000) % 60;
 
-               // String timeLeftFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
-               timePatrolEnded = millisUntilFinished;
+
+                timePatrolEnded = millisUntilFinished;
                 Log.i("WSX", "onTick: "+timePatrolEnded);
+                timePatrolEnded = Math.abs(timePatrolEnded - PATROL_DURATION);
+                if(guardOnPatrol &&  timePatrolEnded > MAX_TIME){
+                    guardOnPatrol = false;
+                    Log.i("WSX", "missing guard: "+millisUntilFinished);
+                    firebaseManager.sendEventType(MainActivity.eventsCollection, "Missing Guard", 6, "");
+                }
 
-               // ttvDuraton.setText(timeLeftFormatted);
             }
 
             @Override
@@ -272,7 +276,8 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
                 closeVoice();
                // ((MainActivity)getActivity()).setDeviceSleep();
                 crvTimeout.setVisibility(View.GONE);
-                firebaseManager.sendEventType(MainActivity.eventsCollection, "No Points Visited", 22, "");
+
+                firebaseManager.sendEventType(MainActivity.eventsCollection, "Failed To Start Patrol", 15, "");
                 timePatrolDuration.cancel();
                 if(patrolDurationConfig != null)
                     patrolDurationConfig.stop();
@@ -377,7 +382,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         Log.i("WSX", "max: "+MAX_TIME);
 
         Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
-        timePatrolEnded = Math.abs(timePatrolEnded - PATROL_DURATION);
+        //timePatrolEnded = Math.abs(timePatrolEnded - PATROL_DURATION);
         Log.i("WSX", "timePatrolEnded: "+timePatrolEnded);
         if(timePatrolEnded >= MAX_TIME){
             //patrol too quick
@@ -519,6 +524,7 @@ public class PatrolFragment extends KioskFragment implements View.OnClickListene
         if(tot>0){
 
             this.firebaseManager.sendEventType(MainActivity.eventsCollection,"Missed point(s)", 4, "");
+
             Toast.makeText(this.getActivity(), String.format("%d points missing",tot), Toast.LENGTH_LONG).show();
             try{
                 ((MainActivity)getActivity()).textToSpeech(String.format("%d points missing",tot),(getActivity().getApplicationContext()));

@@ -67,6 +67,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     private Toolbar mTopToolbar;
 
     private int panicCount;
+    private int supervisorReqCount;
     private Toast panicToast;
     boolean isPlayed;
 
@@ -130,6 +131,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         };
         getActivity().registerReceiver(this.updateUIReceiver, filter);
         this.panicCount = MainActivity.MAX_PANIC_TAPS;
+        supervisorReqCount = MainActivity.MAX_PANIC_TAPS;
         this.panicToast = Toast.makeText(this.getContext(), String.format("press panic %d more times", panicCount), Toast.LENGTH_SHORT);
 
     }
@@ -139,6 +141,8 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View parentView = inflater.inflate(R.layout.activity_main,container, false);
 
+
+        Button btnSupervisorRequest = parentView.findViewById(R.id.btn_supervisor_request);
         Button btnPanic = parentView.findViewById(R.id.btn_panic);
         this.txtCountDown = parentView.findViewById(R.id.ttv_time);
         this.txtDutyStatus = parentView.findViewById(R.id.ttv_duty_status);
@@ -146,6 +150,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         ((MainActivity)getActivity()).setScreenSleep();
 
         btnPanic.setOnClickListener(this);
+        btnSupervisorRequest.setOnClickListener(this);
 
         this.mTopToolbar =  parentView.findViewById(R.id.my_toolbar);
         ((MainActivity)this.getActivity()).setSupportActionBar(mTopToolbar);
@@ -194,17 +199,6 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         detectDutyStatus(startDate, nowTime, endTime, firebaseManager, siteDataManager);
         Log.i("WSX", "setupTimer: 2 ");
 
-//        long nxtTime =  Interpol.getNextTimePatrol(startDate.getTimeInMillis(), 1000 * 60 * intervalTimer);
-//        if(nxtTime < 0){
-//            long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
-//            Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
-//            startTimer(remainingTime / 60000.0);
-//            DutyStatus = "OFF DUTY";
-//        }else{
-//            Interpol.getInstance().setNextTime(nxtTime);
-//            long diff = nxtTime - System.currentTimeMillis();
-//            startTimer((diff) / 60000.0);
-//        }
     }
 
     @Override
@@ -212,6 +206,9 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         switch(v.getId()){
             case R.id.btn_panic:
                 onPanic();
+                break;
+            case R.id.btn_supervisor_request:
+                onSupervisorRequest();
                 break;
         }
     }
@@ -372,6 +369,33 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
 
             }
         }.start();
+    }
+
+
+    public void onSupervisorRequest(){
+        if(supervisorReqCount == MainActivity.MAX_PANIC_TAPS){
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    supervisorReqCount = MainActivity.MAX_PANIC_TAPS;
+                }
+            }, MainActivity.PANIC_REST_DURATION);
+        }
+
+        supervisorReqCount--;
+
+        if(supervisorReqCount == 0){
+            String siteId = getContext().getSharedPreferences(getContext().getPackageName(), Context.MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
+            if(siteId != null){
+                firebaseManager.sendEventType(MainActivity.eventsCollection, "Supervisor Request", 9, "");
+                supervisorReqCount = MainActivity.MAX_PANIC_TAPS;
+                panicToast.setText("Request Message Sent.");
+                panicToast.show();
+            }
+        }else{
+            panicToast.setText(String.format("press request %d more times", supervisorReqCount));
+            panicToast.show();
+        }
     }
 
     public void onPanic(){

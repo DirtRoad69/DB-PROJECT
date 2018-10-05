@@ -16,6 +16,7 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 
+import com.example.developer.fullpatrol.FirebaseManager;
 import com.example.developer.fullpatrol.MainActivity;
 import com.example.developer.fullpatrol.R;
 
@@ -31,6 +32,7 @@ public class NewLocalCamera extends KioskFragment {
     private boolean fileUploaded;
     public String mCurrentPhotoPath;
     private boolean pressed;
+    private FirebaseManager firebaseManager;
 
     @Nullable
     @Override
@@ -43,7 +45,7 @@ public class NewLocalCamera extends KioskFragment {
         mPreview = new CameraPreview(getContext(), mCamera);
         FrameLayout preview = view.findViewById(R.id.camera_preview);
         preview.addView(mPreview);
-
+        this.firebaseManager = FirebaseManager.getInstance();
 
 
         //take picture
@@ -58,10 +60,11 @@ public class NewLocalCamera extends KioskFragment {
                             if(!pressed) {
                                 mCamera.takePicture(null, null, mPicture);
                                 fileUploaded = true;
+                                firebaseManager.sendEventType(MainActivity.eventsCollection, "Picture Taken", 65, "");
                                 pressed = true;
                             }else{
                                 if(mCamera != null){
-                                    Log.i("WSX", "onClick: camera and pressed");
+                                    Log.i("WSX", "onClick: camera and pressed ");
                                     mCamera.startPreview();
                                     pressed = false;
                                 }
