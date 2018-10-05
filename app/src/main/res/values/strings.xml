@@ -6,5 +6,23 @@
     <string name="negative_popup_title_default">Awww. . .Snap!</string>
     <string name="positive_popup_button_default">OK</string>
     <string name="negative_popup_button_default">TRY AGAIN</string>
+    <string name="app_description">You should allow My Application to lock the screen</string>
+
+
+    <string name="start_patrol">It is time to start patrol, it is time to start patrol, it is time to start patrol, it is time to start patrol, it is time to start patrol, it is time to start patrol, it is time to start patrol</string>
+    <string name="scan_point">Please Scan Point</string>
+    <string name="not_site_point">Point not from site</string>
+    <string name="not_starting_point">Not starting point</string>
+    <string name="patrol_started">The Patrol has been started</string>
+    <string name="point_scanned">Point Scanned</string>
+    <string name="point_already_scanned">Point Already scanned</string>
+
+
+    <string name="min_patrol_time">You Patrolled Too quickly</string>
+    <string name="max_patrol_time">You Patrolled Too Slowly</string>
+    <string name="patrol_completed">The Patrol has been completed</string>
+    <string name="battery_less_than_10">THE BATTERY IS NOW LESS THAN TEN PERCENT PLEASE PLUG IN CHARGER</string>
+    <string name="battery_less_than_20">THE BATTERY IS NOW LESS THAN TWENTY PERCENT PLEASE PLUG IN CHARGER</string>
+    <string name="battery_less_than_40">THE BATTERY IS NOW LESS THAN FORTY PERCENT PLEASE PLUG IN CHARGER</string>
 
 </resources>

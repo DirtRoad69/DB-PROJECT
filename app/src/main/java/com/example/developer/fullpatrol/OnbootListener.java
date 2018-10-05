@@ -20,10 +20,15 @@ public class OnbootListener extends BroadcastReceiver {
                 showKiosk(context);
                 break;
             case Intent.ACTION_BOOT_COMPLETED:
-                this.onBoot(context);
+                //this.onBoot(context);
+                Log.i("WSX", "onReceive: BOOTCOMPLETE");
+                onBootDemo(context);
                 break;
             case "android.intent.action.QUICKBOOT_POWERON":
-                this.onBoot(context);
+                //this.onBoot(context);
+                Log.i("WSX", "onReceive: QUICKBOOT_POWERON");
+                onBootDemo(context);
+
                 break;
                 default:
                     showKiosk(context);
@@ -31,20 +36,35 @@ public class OnbootListener extends BroadcastReceiver {
         }
     }
 
+    private void onBootDemo(Context context){
+        /**Show the BaseKiosk Activity*/
+        Intent i = new Intent(context, HomeActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(i);
+        Log.i("WSX", "onBoot: tried");
+        /**Since the Service was killed, we restart it.*/
+
+        Log.i("WSX", "onBoot: failed");
+    }
     private void onBoot(Context context){
         /**Show the BaseKiosk Activity*/
-        this.showKiosk(context);
-
+        Intent i = new Intent(context, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(i);
+        Log.i("WSX", "onBoot: tried");
         /**Since the Service was killed, we restart it.*/
         Intent intent = new Intent(context, DispatcherService.class);
         context.startService(intent);
+        Log.i("WSX", "onBoot: failed");
     }
 
     private void showKiosk(Context context){
+        Log.i(TAG, "showKiosk: we are off");
         /**the process of starting the Kiosk Activty.*/
         if(Interpol.getInstance().isOutOfMainActivity())
             return;
 
+        Log.i(TAG, "showKiosk: we are on");
         Intent i = new Intent(context, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(i);

@@ -17,10 +17,7 @@ import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
 import static android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
 import static android.view.WindowManager.LayoutParams.TYPE_SYSTEM_ERROR;
 
-/**
- * Created by ASANDA on 2018/06/13.
- * for Kiosk
- */
+
 public class LockableActivity extends AppCompatActivity {
     private HomeLocker homeLocker;
 
@@ -66,6 +63,7 @@ public class LockableActivity extends AppCompatActivity {
         public void Lock(Activity activity) {
             if (mOverlayDialog == null && !this.isLocked) {
 
+                Log.i("ZAQ@", "LOCKED");
                 mOverlayDialog = new OverlayDialog(activity);
                 if(!mOverlayDialog.isShowing())
                     mOverlayDialog.show();

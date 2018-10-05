@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include android:id="@+id/tmp_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/tmp_holder_points"
+        layout="@layout/site_data_template"/>
+
+
+    <include
+        android:id="@+id/tmp_holder_points"
+        layout="@layout/points_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btn_load_data" />
+
+    <Button
+        android:id="@+id/btn_load_data"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="center"
+        android:background="@color/colorPrimaryDark"
+        android:clickable="true"
+        android:text="FINISH"
+        android:textColor="#FFF"
+        android:textStyle="bold" />
+
+</RelativeLayout>

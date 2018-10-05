@@ -6,9 +6,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.PowerManager;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
@@ -20,10 +25,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.developer.fragments.controlPanelFragments.fragments.ControlPanelFragment;
 import com.example.developer.fullpatrol.AlarmReceiver;
 import com.example.developer.fullpatrol.ControlPanel;
 import com.example.developer.fullpatrol.FirebaseManager;
@@ -52,7 +59,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     private SiteDataManager siteDataManager;
 
 
-    private BroadcastReceiver updateUIReceiver;
+    public static BroadcastReceiver updateUIReceiver;
 
 
     private TextView txtCountDown, txtDutyStatus;
@@ -60,8 +67,9 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     private Toolbar mTopToolbar;
 
     private int panicCount;
+    private int supervisorReqCount;
     private Toast panicToast;
-
+    boolean isPlayed;
 
     public DutyFragment(){
         this.firebaseManager = FirebaseManager.getInstance();
@@ -72,12 +80,14 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setHasOptionsMenu(true);
-        Log.i(TAG, "onCreate: is on");
-
+        ((MainActivity)getActivity()).wakeUpDevice();
         IntentFilter filter = new IntentFilter();
+
         filter.addAction(AlarmReceiver.ACTION_REST_ALARM);
         filter.addAction(AlarmReceiver.ACTION_REST_COUNTER);
         filter.addAction(AlarmReceiver.ACTION_START_PATROL);
+        filter.addAction(AlarmReceiver.ACTION_END_TIME);
+        filter.addAction(AlarmReceiver.ACTION_NOW_OFFDUTY);
 
         updateUIReceiver = new BroadcastReceiver() {
             @Override
@@ -92,11 +102,28 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
                             Log.i("RFC", "Received");
                             break;
                         case AlarmReceiver.ACTION_REST_COUNTER:
-                            startTimer(intent.getDoubleExtra(EXTRA_DURATION, 0));
+                            Log.i("WSX", "onReceive: ACTION_REST_COUNTER "+Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
+                            startTimer(Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
                             break;
+                        case AlarmReceiver.ACTION_NOW_OFFDUTY:
+                            Log.i("WSX", "onReceive: ACTION_NOW_OFFDUTY "+Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
+                            startTimer(Math.abs(intent.getDoubleExtra(EXTRA_DURATION, 0)));
                         case AlarmReceiver.ACTION_START_PATROL:
                             DutyFragment.this.startFragment(new PatrolFragment());
                             break;
+                        case AlarmReceiver.ACTION_END_TIME:
+                            Log.i("WSX", "onReceive: REFRESH");
+                            if(DutyStatus.equals("OFF DUTY")){
+                                Log.i("WSX", "onReceive: REFRESH removeSelf");
+
+                                ((MainActivity) getActivity()).resetIfOffDuty();
+
+
+
+                            }
+
+                            break;
+
                     }
 
                 }
@@ -104,6 +131,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         };
         getActivity().registerReceiver(this.updateUIReceiver, filter);
         this.panicCount = MainActivity.MAX_PANIC_TAPS;
+        supervisorReqCount = MainActivity.MAX_PANIC_TAPS;
         this.panicToast = Toast.makeText(this.getContext(), String.format("press panic %d more times", panicCount), Toast.LENGTH_SHORT);
 
     }
@@ -114,11 +142,16 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View parentView = inflater.inflate(R.layout.activity_main,container, false);
 
+
+        Button btnSupervisorRequest = parentView.findViewById(R.id.btn_supervisor_request);
         Button btnPanic = parentView.findViewById(R.id.btn_panic);
         this.txtCountDown = parentView.findViewById(R.id.ttv_time);
         this.txtDutyStatus = parentView.findViewById(R.id.ttv_duty_status);
 
+        ((MainActivity)getActivity()).setScreenSleep();
+
         btnPanic.setOnClickListener(this);
+        btnSupervisorRequest.setOnClickListener(this);
 
         this.mTopToolbar =  parentView.findViewById(R.id.my_toolbar);
         ((MainActivity)this.getActivity()).setSupportActionBar(mTopToolbar);
@@ -132,34 +165,41 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         int startHour, startMin, intervalTimer;
         startHour = siteDataManager.getInt("startHour");
         startMin = siteDataManager.getInt("startMin");
-        intervalTimer = siteDataManager.getLong("intervalTimer").intValue();
-
 
 
         // Set the alarm to start at 8:30 a.m.
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, startHour);
-        calendar.set(Calendar.MINUTE, startMin);
-        calendar.set(Calendar.SECOND, 0);
-
-
-        offDuty(DutyStatus.equals("ON DUTY"), calendar);
-
+        Log.i("WSX", "setupTimer: set starttime");
+        Calendar startDate = Calendar.getInstance();
+        startDate.setTime(Calendar.getInstance().getTime());
+        startDate.setTimeInMillis(System.currentTimeMillis());
+        startDate.set(Calendar.HOUR_OF_DAY, startHour);
+        startDate.set(Calendar.MINUTE, startMin);
+        startDate.set(Calendar.SECOND, 0);
 
 
 
-        long nxtTime =  Interpol.getNextTimePatrol(calendar.getTimeInMillis(), 1000 * 60 * intervalTimer);
-        if(nxtTime < 0){
-            long  remainingTime = calendar.getTimeInMillis() - System.currentTimeMillis();
-            Interpol.getInstance().setNextTime(calendar.getTimeInMillis());
-            startTimer(remainingTime / 60000.0);
-            DutyStatus = "OFF DUTY";
-        }else{
-            Interpol.getInstance().setNextTime(nxtTime);
-            long diff = nxtTime - System.currentTimeMillis();
-            startTimer((diff) / 60000.0);
-        }
+        //added
+
+        int endHour =  siteDataManager.getInt("endHour") , endMin =siteDataManager.getInt("endMin");
+        Calendar endTime = Calendar.getInstance();
+        endTime.setTimeInMillis(System.currentTimeMillis());
+        endTime.set(endTime.HOUR_OF_DAY, endHour);
+        endTime.set(endTime.MINUTE, endMin);
+        endTime.set(endTime.SECOND, 0);
+
+
+
+
+
+        Calendar nowTime = Calendar.getInstance();
+
+
+        Log.i("WSX", "setupTimer: 1");
+
+
+        detectDutyStatus(startDate, nowTime, endTime, firebaseManager, siteDataManager);
+        Log.i("WSX", "setupTimer: 2 ");
+
     }
 
     @Override
@@ -167,6 +207,9 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         switch(v.getId()){
             case R.id.btn_panic:
                 onPanic();
+                break;
+            case R.id.btn_supervisor_request:
+                onSupervisorRequest();
                 break;
         }
     }
@@ -178,8 +221,105 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
     }
 
     private void offDuty(Boolean isOnDuty, Calendar c){
-        if(!isOnDuty)
+        if(!isOnDuty){
+            Log.i("WSX", "offDuty: ");
             c.add(Calendar.DATE, 1);
+        }
+
+    }
+
+    public boolean isPM(int hour){
+        boolean isPM = false;
+        if(hour >= 12){
+            isPM = true;
+        }
+        return isPM;
+    }
+
+    public void compareDates(Calendar startDate,Calendar nowDate, Calendar endDate, FirebaseManager firebaseManager, SiteDataManager siteDataManager){
+
+        if((endDate.getTimeInMillis() >= nowDate.getTimeInMillis())
+                && (nowDate.getTimeInMillis() >= startDate.getTimeInMillis())){
+
+
+
+
+
+            long nxtTime =  Interpol.getNextTimePatrol(startDate.getTimeInMillis(), 1000*60* siteDataManager.getLong("intervalTimer").intValue());
+            Date resultdate = new Date(nxtTime);
+            Log.i("RFC", resultdate.toString());
+            if(nxtTime < 0){
+                //MainActivity.dutyStatus = "OFF DUTY";
+                startDate.add(startDate.DATE, 1);
+                long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+
+                startTimer(remainingTime / 60000.0);
+                DutyStatus = "OFF DUTY";
+
+            }else{
+                if(DutyFragment.DutyStatus.equals("OFF DUTY")){
+                    firebaseManager.sendEventType("events",  "ON DUTY" , 2, "site");
+                }
+                DutyFragment.DutyStatus = "ON DUTY";
+                Interpol.getInstance().setNextTime(nxtTime);
+                long diff = nxtTime - System.currentTimeMillis();
+                startTimer((diff) / 60000.0);
+            }
+
+
+            Log.i("WSX", "compareDates: ON DUTY DUTY FRAG");
+            Log.i("WSX", "compareDates: UPDATE UI DUTY FRAG");
+            Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nrStartTime "+ startDate.getTime() );
+        }else{
+
+            Log.i("WSX", "compareDates: OFF DUTY ELSE StartDate: "+ startDate.getTime() +" NOW: "+Calendar.getInstance().getTime());
+
+//            if(startDate.getTimeInMillis() >= Calendar.getInstance().getTimeInMillis())
+//                //startDate.add(startDate.DATE, 1);
+            Log.i("WSX", "compareDates: OFF DUTY");
+            Log.i("WSX", "compareDates: OFF DUTY SENT. . .DUTY FRAG");
+            Log.i("WSX", "compareDates: SET NEXT TIME. . .DUTY FRAG\n" +nowDate.getTime() +" \nendTime "+ endDate.getTime() +"\nStartTime "+ startDate.getTime() );
+
+            long nxtTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+            if(nxtTime < 0){
+                startDate.add(startDate.DATE, 1);
+                DutyStatus = "OFF DUTY";
+                Log.i("WSX", "compareDates: OFF DUTY LESS THAN ZERO StartDate: "+ startDate.getTime());
+                long  remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+                startTimer(remainingTime / 60000.0);
+            }else {
+                Log.i("WSX", "compareDates: OFF DUTY ELSE StartDate: "+ startDate.getTime());
+                DutyFragment.DutyStatus = "OFF DUTY";
+                firebaseManager.sendEventType("events", DutyFragment.DutyStatus, 10, "site");
+                long remainingTime = startDate.getTimeInMillis() - System.currentTimeMillis();
+                Interpol.getInstance().setNextTime(startDate.getTimeInMillis());
+                startTimer(remainingTime / 60000.0);
+
+            }
+
+            Log.i("WSX", "OFF DUTY on DUTY FRAGMENT DUTY FRAG");
+
+
+        }
+
+    }
+    public void detectDutyStatus(Calendar startDate,Calendar nowDate, Calendar endDate, FirebaseManager firebaseManager,SiteDataManager siteDataManager){
+        //check if on different day
+        if(isPM(startDate.get(startDate.HOUR_OF_DAY)) && !isPM(endDate.get(endDate.HOUR_OF_DAY))){
+            //skip day
+
+            endDate.add(endDate.DATE, 1);
+
+            Log.i("WSX", "compareDates: Day Skipped DUTY FRAG");
+            compareDates(startDate, nowDate, endDate, firebaseManager, siteDataManager);
+
+        }else{
+            Log.i("WSX", "compareDates: Day not skipped we are on the current day. . .DUTY FRAG");
+            compareDates(startDate, nowDate, endDate, firebaseManager, siteDataManager);
+        }
+
     }
 
 
@@ -190,6 +330,7 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
         }
 
         Log.i("RFC", duration + "=dur");
+        isPlayed = false;
         mCountDownTimer = new CountDownTimer((long) (duration * 60 * 1000), 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -206,18 +347,67 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
 
                 //((MainActivity)getActivity()).wakeUpDevice();
                 updateCountDownText(millisUntilFinished);
+                if(millisUntilFinished <= 30000){
+                    ((MainActivity)getActivity()).wakeUpScreen();
+                    try {
+//                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//                        Ringtone r = RingtoneManager.getRingtone(getContext(), notification);
+//                        r.play();
+                        if(millisUntilFinished <= 15000)
+                        {
+                            if(!isPlayed){
+                                ((MainActivity)getActivity()).textToSpeech(getString(R.string.start_patrol), getContext());
+                                isPlayed = true;
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    Log.i(TAG, "onTick: is on");
+                }
             }
 
             @Override
             public void onFinish() {
-                ((MainActivity)getActivity()).setDeviceSleep();
                 Intent intent = new Intent("com.example.intent.restart");
                 intent.putExtra(AlarmReceiver.ACTION_CALLER, AlarmReceiver.CALLER_TIMER);
 
                 getContext().sendBroadcast(intent);
                 Toast.makeText(getActivity(), "TIMER ACTIVITY 1", Toast.LENGTH_SHORT).show();
+                //release wakelock
+
+                //((MainActivity)getActivity()).setScreenSleep();
+
             }
         }.start();
+    }
+
+
+    public void onSupervisorRequest(){
+        if(supervisorReqCount == MainActivity.MAX_PANIC_TAPS){
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    supervisorReqCount = MainActivity.MAX_PANIC_TAPS;
+                }
+            }, MainActivity.PANIC_REST_DURATION);
+        }
+
+        supervisorReqCount--;
+
+        if(supervisorReqCount == 0){
+            String siteId = getContext().getSharedPreferences(getContext().getPackageName(), Context.MODE_PRIVATE).getString(LinkDeviceActivity.PREF_LINKED_SITE, null);
+            if(siteId != null){
+                firebaseManager.sendEventType(MainActivity.eventsCollection, "Supervisor Request", 9, "");
+                supervisorReqCount = MainActivity.MAX_PANIC_TAPS;
+                panicToast.setText("Request Message Sent.");
+                panicToast.show();
+            }
+        }else{
+            panicToast.setText(String.format("press request %d more times", supervisorReqCount));
+            panicToast.show();
+        }
     }
 
     public void onPanic(){
@@ -261,22 +451,27 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
 
     @Override
     protected void onFragmentResult(int requestCode, int resultCode, Bundle extraData) {
-        if(resultCode == Activity.RESULT_OK){
-            if(requestCode == MainActivity.REQUEST_CONTROL) {
-                boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
-                if(loggedIn){
+        //added try catch
+        try{
+            if(resultCode == Activity.RESULT_OK){
+                if(requestCode == MainActivity.REQUEST_CONTROL) {
+                    boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
+                    if(loggedIn){
+
+                        DutyFragment.this.startFragment(new ControlPanelFragment());
 //                    this.Unlock();
 //                    Intent controlPanelIntent = new Intent(this, ControlPanel.class);
 //                    this.startActivity(controlPanelIntent);
-                }
-            } else if (requestCode == REQUEST_EXIT) {
-                boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
-                if(loggedIn){
-                    mCountDownTimer.cancel();
-                    ((MainActivity)this.getActivity()).exitKiosk();
+                    }
+                } else if (requestCode == REQUEST_EXIT) {
+                    boolean loggedIn = extraData.getBoolean(AuthenticationFragment.EXTRA_LOGGED_IN, false);
+                    if(loggedIn){
+                        mCountDownTimer.cancel();
+                        ((MainActivity)this.getActivity()).exitKiosk();
+                    }
                 }
             }
-        }
+        }catch (Exception e){}
     }
 
 
@@ -295,6 +490,15 @@ public class DutyFragment extends KioskFragment implements View.OnClickListener 
             case R.id.action_exit_kiosk:
                 sendIntent(AuthenticationFragment.ACCESS_TYPE_ADMIN, REQUEST_EXIT);
                 break;
+            case R.id.action_report_voice:
+                //start voice fragment
+                DutyFragment.this.startFragment(new TakeAudioFragment());
+                break;
+            case R.id.action_report_image:
+                //start image fragment
+                DutyFragment.this.startFragment(new NewLocalCamera());
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);

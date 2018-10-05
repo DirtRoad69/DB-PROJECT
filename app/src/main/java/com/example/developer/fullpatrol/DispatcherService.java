@@ -62,6 +62,7 @@ public class DispatcherService extends Service {
         filter.addAction("android.intent.action.QUICKBOOT_POWERON");
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        Log.i("WSX", "initReceiver: we tried here");
 
         /** Create the receiver object the system will use to notify us of the events we filtered .*/
         this.onbootListener = new OnbootListener();

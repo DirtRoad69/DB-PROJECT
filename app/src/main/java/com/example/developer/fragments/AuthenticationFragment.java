@@ -120,36 +120,83 @@ public class AuthenticationFragment extends KioskFragment implements View.OnFocu
                 if(task.isSuccessful()){
                     //go to main
                     String accessType = AuthenticationFragment.this.getArguments().getString(ACCESS_TYPE);
-                    if(accessType.equals(ACCESS_TYPE_ADMIN)){
-                        final String userId = mAuth.getCurrentUser().getUid();
-                        firebaseManager.getData("users", "owner", new FirebaseManager.DataCallback() {
-                            @Override
-                            public void onDataReceived(Map<String, Object> data) {
-                                String ownerId = data.get("userId").toString();
-                                if(userId.equals(ownerId)){
-                                    Toast.makeText(getContext(), "Authentication Successful", Toast.LENGTH_SHORT).show();
-                                    Bundle extraData = new Bundle();
-                                    extraData.putBoolean(EXTRA_LOGGED_IN, true);
+                    final String userId = mAuth.getCurrentUser().getUid();
 
-                                    AuthenticationFragment.this.removeSelf(Activity.RESULT_OK, extraData);
-                                }else{
-                                    Toast.makeText(getContext(), "Authentication Failed", Toast.LENGTH_SHORT).show();
+                    switch (accessType){
+                        case ACCESS_TYPE_CONTROL:
+
+
+                            firebaseManager.getData("users", "owner", new FirebaseManager.DataCallback() {
+                                @Override
+                                public void onDataUpdated(Map<String, Object> data) {
+
                                 }
-                                linProgess.setVisibility(View.INVISIBLE);
-                                relTemp.setVisibility(View.VISIBLE);
-                            }
 
-                            @Override
-                            public void onDataReceived(List<Map<String, Object>> data) {
+                                @Override
+                                public void onDataReceived(Map<String, Object> data) {
+                                    String ownerId = data.get("userId").toString();
+                                    if(userId.equals(ownerId)){
+                                        //Toast.makeText(getContext(), "Authentication Successful", Toast.LENGTH_SHORT).show();
+                                        Bundle extraData = new Bundle();
+                                        extraData.putBoolean(EXTRA_LOGGED_IN, true);
 
-                            }
-                        });
+                                        AuthenticationFragment.this.removeSelf(Activity.RESULT_OK, extraData);
+                                    }else{
+                                        Toast.makeText(getContext(), "Authntication Failed", Toast.LENGTH_SHORT).show();
+                                    }
+                                    linProgess.setVisibility(View.INVISIBLE);
+                                    relTemp.setVisibility(View.VISIBLE);
+                                }
+
+                                @Override
+                                public void onDataReceived(List<Map<String, Object>> data) {
+
+                                }
+                            });
+                            break;
+                        case ACCESS_TYPE_ADMIN:
+
+
+
+                            firebaseManager.getData("users", "owner", new FirebaseManager.DataCallback() {
+                                @Override
+                                public void onDataUpdated(Map<String, Object> data) {
+
+                                }
+
+                                @Override
+                                public void onDataReceived(Map<String, Object> data) {
+                                    String ownerId = data.get("userId").toString();
+                                    if(userId.equals(ownerId)){
+                                        Toast.makeText(getContext(), "Authentication Successful", Toast.LENGTH_SHORT).show();
+                                        Bundle extraData = new Bundle();
+                                        extraData.putBoolean(EXTRA_LOGGED_IN, true);
+
+                                        AuthenticationFragment.this.removeSelf(Activity.RESULT_OK, extraData);
+                                    }else{
+                                        Toast.makeText(getContext(), "Authentication Failed", Toast.LENGTH_SHORT).show();
+                                    }
+                                    linProgess.setVisibility(View.INVISIBLE);
+                                    relTemp.setVisibility(View.VISIBLE);
+                                }
+
+                                @Override
+                                public void onDataReceived(List<Map<String, Object>> data) {
+
+                                }
+                            });
+
+                            break;
+                    }
+
+                    if(accessType.equals(ACCESS_TYPE_ADMIN)){
+
                     }else {
-                        Toast.makeText(getContext(), "Authentication SUCCESSFUL", Toast.LENGTH_SHORT).show();
-                        Bundle extraData = new Bundle();
-                        extraData.putBoolean(EXTRA_LOGGED_IN, true);
-
-                        AuthenticationFragment.this.removeSelf(Activity.RESULT_OK, extraData);
+//                        Toast.makeText(getContext(), "Authentication SUCCESSFUL", Toast.LENGTH_SHORT).show();
+//                        Bundle extraData = new Bundle();
+//                        extraData.putBoolean(EXTRA_LOGGED_IN, true);
+//
+//                        AuthenticationFragment.this.removeSelf(Activity.RESULT_OK, extraData);
                     }
 
 

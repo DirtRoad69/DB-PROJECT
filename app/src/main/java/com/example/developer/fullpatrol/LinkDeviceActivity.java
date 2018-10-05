@@ -41,6 +41,7 @@ import java.util.Map;
 public class LinkDeviceActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String SHARED_DEVICE_ID = "Shared Device id";
     public static final String SHARED_SITE_ID = "Shared Site id";
+    public static final String SHARED_SITE_ID_INT = "Shared Site id int";
     public static final String PREF_UID = "PREF_UID";
     public static final String PREF_LINKED_SITE = "PREF_LINKED_SITE";
     public static final String PREF_LINKED_SITE_NAME= "PREF_LINKED_SITE_NAME";
@@ -107,7 +108,12 @@ public class LinkDeviceActivity extends AppCompatActivity implements View.OnClic
     private void generateUID() {
         showProgress("Unique Id", "Generating Unique id for device...");
 
-        firebaseManager.getCollection("machineCodes", "timeStamp", 1, new FirebaseManager.DataCallback() {
+        firebaseManager.getCollection("machines", "timeStamp", 1, new FirebaseManager.DataCallback() {
+            @Override
+            public void onDataUpdated(Map<String, Object> data) {
+
+            }
+
             @Override
             public void onDataReceived(Map<String, Object> data) {
 
@@ -155,7 +161,7 @@ public class LinkDeviceActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void createDeviceOnFireStore(final String uid) {
-        firebaseManager.addDevice("machineCodes", false,"none", uid, new FirebaseManager.DataPushCallack() {
+        firebaseManager.addDevice("machines", false,"none", uid, new FirebaseManager.DataPushCallack() {
             @Override
             public void onPushed() {
                 dismissProgress();
